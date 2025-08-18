@@ -1,5 +1,5 @@
 import React from "react";
-import CloseSesionButton from "../atom/closeSesionButton";
+import CloseSesionButton from "../atom/CloseSesionButton";
 
 
 const DepartamentsDashboard = () => {
