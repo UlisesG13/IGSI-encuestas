@@ -5,10 +5,15 @@ import PerfilButton from "../atom/PerfilButton";
 const Header = () => {
   return (
     <header className="header">
-      <CloseSesionButton></CloseSesionButton>  
-      <HeaderLogo />
-    <PerfilButton></PerfilButton>
-    
+      <div className="header__left">
+        <CloseSesionButton />
+      </div>
+      <div className="header__center">
+        <HeaderLogo />
+      </div>
+      <div className="header__right">
+        <PerfilButton />
+      </div>
     </header>
   );
 }

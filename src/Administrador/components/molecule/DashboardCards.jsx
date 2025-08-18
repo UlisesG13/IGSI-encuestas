@@ -1,29 +1,19 @@
-import InfoCard from "../atom/InfoCard"; // Asegúrate de tener el componente InfoCard
+import InfoCard from "../atom/InfoCard";
 
 const DashboardCards = ({numeroDepartamentos = 24, numeroEncuestas = 1000, numeroEmpleados = 1500}) => {
-
-    
   const data = [
-    { Titulo: "Número de departamentos", Cantidad:numeroDepartamentos },
+    { Titulo: "Número de departamentos", Cantidad: numeroDepartamentos },
     { Titulo: "Número de encuestas", Cantidad: numeroEncuestas },
     { Titulo: "Número de empleados", Cantidad: numeroEmpleados }
   ];
 
-  const containerStyle = {
-    display: "flex",
-    flexDirection: "column", // Cambia a "row" si quieres horizontal
-    gap: "16px",
-    alignItems: "flex-start"
-  };
-
   return (
-    <div style={containerStyle}>
+    <div className="dashboard-cards">
       {data.map((item, index) => (
-        <InfoCard
-          key={index}
-          Titulo={item.Titulo}
-          Cantidad={item.Cantidad}
-        />
+        <div key={index} className="dashboard-cards__card">
+          <div className="dashboard-cards__label">{item.Titulo}</div>
+          <div className="dashboard-cards__value">{item.Cantidad}</div>
+        </div>
       ))}
     </div>
   );
