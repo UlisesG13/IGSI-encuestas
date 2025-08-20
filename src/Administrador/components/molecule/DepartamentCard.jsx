@@ -8,49 +8,49 @@ const DepartamentCard = ({
   idDepartamento 
 }) => {
   return (
-    <div className="departament-card">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-soft p-6 max-w-4xl transition-shadow duration-200 hover:shadow-medium">
       {/* Header con títulos */}
-      <div className="departament-card__header">
+      <div className="grid grid-cols-4 gap-6 mb-4">
         <div>
-          <h3 className="departament-card__header-title">
+          <h3 className="text-sm text-left font-semibold text-gray-900 uppercase tracking-wider">
             DEPARTAMENTO
           </h3>
         </div>
         <div>
-          <h3 className="departament-card__header-title">
+          <h3 className="text-sm text-left font-semibold text-gray-900 uppercase tracking-wider">
             Descripción
           </h3>
         </div>
         <div>
-          <h3 className="departament-card__header-title">
+          <h3 className="text-sm text-left font-semibold text-gray-900 uppercase tracking-wider">
             Número de encuestas hechas
           </h3>
         </div>
         <div>
-          <h3 className="departament-card__header-title">
+          <h3 className="text-sm text-left font-semibold text-gray-900 uppercase tracking-wider">
             Interacción
           </h3>
         </div>
       </div>
 
       {/* Contenido de la tarjeta */}
-      <div className="departament-card__content">
+      <div className="grid grid-cols-4 gap-6 items-center">
         <div>
-          <p className="departament-card__field">
+          <p className="text-sm text-gray-500">
             {nombreDepartamento}
           </p>
         </div>
         <div>
-          <p className="departament-card__field">
+          <p className="text-sm text-gray-500">
             {descripcionDepartamento}
           </p>
         </div>
         <div>
-          <p className="departament-card__field departament-card__field--value">
+          <p className="text-sm text-gray-500 font-medium">
             {numeroEncuestas}
           </p>
         </div>
-        <div className="departament-card__actions">
+        <div className="flex justify-end">
           <DepartamentMenuButton idDepartamento={idDepartamento} />
         </div>
       </div>

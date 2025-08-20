@@ -6,7 +6,7 @@ const InputAtom = ({ type = "text", placeholder, value, onChange, name }) => {
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 text-gray-700 bg-white"
+      className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-primary-600 focus:ring-3 focus:ring-primary-100 placeholder-gray-400 text-gray-700 bg-white"
     />
   );
 };

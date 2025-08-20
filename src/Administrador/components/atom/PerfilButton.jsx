@@ -9,23 +9,9 @@ const PerfilButton = () => {
     navigate("/perfilDelUsuario"); // Ruta a la que quieres ir
   };
 
-  const buttonStyle = {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    padding: "5px",
-    color: "inherit"
-  };
-
-  const hoverStyle = {
-    color: "blue"
-  };
-
   return (
     <button
-      style={buttonStyle}
-      onMouseOver={(e) => e.currentTarget.style.color = hoverStyle.color}
-      onMouseOut={(e) => e.currentTarget.style.color = "inherit"}
+      className="flex items-center gap-2 p-2 bg-transparent border-none cursor-pointer text-white rounded-md transition-colors duration-200 hover:bg-white/10"
       onClick={handleClick}
       title="Perfil del usuario"
     >
