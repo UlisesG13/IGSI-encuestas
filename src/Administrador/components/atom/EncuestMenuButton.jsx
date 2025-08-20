@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { MoreVertical } from 'lucide-react';
 
 const EncuestMenuButton = ({ idEncuesta }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -6,13 +7,13 @@ const EncuestMenuButton = ({ idEncuesta }) => {
 
   // Función para manejar la edición
   const handleEdit = (id) => {
-    alert(`Encuestas: ${id}`);
+    alert(`Ver encuesta: ${id}`);
     setIsOpen(false);
   };
 
   // Función para manejar la eliminación
   const handleDelete = (id) => {
-    alert(`Eliminado: ${id}`);
+    alert(`Eliminar encuesta: ${id}`);
     setIsOpen(false);
   };
 
@@ -31,29 +32,29 @@ const EncuestMenuButton = ({ idEncuesta }) => {
   }, []);
 
   return (
-    <div className="departament-menu-button" ref={menuRef}>
+    <div className="relative inline-block" ref={menuRef}>
       {/* Botón Menu */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="departament-menu-button__trigger"
+        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
       >
-        Menu
+        <MoreVertical size={16} />
       </button>
 
       {/* Menú desplegable */}
       {isOpen && (
-        <div className="departament-menu-button__dropdown">
+        <div className="absolute top-full right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-large z-50">
           <div className="py-1">
             <button
               onClick={() => handleEdit(idEncuesta)}
-              className="departament-menu-button__item"
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-gray-100 focus:outline-none"
             >
               Ver
             </button>
-            <hr className="departament-menu-button__divider" />
+            <hr className="border-0 border-t border-gray-200 m-0" />
             <button
               onClick={() => handleDelete(idEncuesta)}
-              className="departament-menu-button__item"
+              className="w-full text-left px-3 py-2 text-sm text-red-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-red-50 focus:outline-none"
             >
               Eliminar
             </button>

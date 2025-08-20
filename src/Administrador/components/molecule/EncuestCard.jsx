@@ -4,52 +4,60 @@ import React, { useState } from "react";
 const EncuestCard = ({ encuesta }) => {
   const [isChecked, setIsChecked] = useState(false);
 
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case 'Activa':
+        return 'text-green-600 bg-green-50';
+      case 'Pendiente':
+        return 'text-yellow-600 bg-yellow-50';
+      case 'Finalizada':
+        return 'text-blue-600 bg-blue-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="grid grid-cols-4 gap-6 items-start">
-        {/* Checkbox + Nombre de encuesta */}
-        <div className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={(e) => setIsChecked(e.target.checked)}
-            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <div className="flex-1">
-            <div className="text-sm font-medium text-gray-900 mb-1">
-              Nombre de encuesta
-            </div>
-            <div className="text-xs text-gray-500 mb-2">
-              <span className="block">Fecha</span>
-              <span className="text-gray-400">{encuesta.fecha}</span>
-            </div>
+    <div className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+      {/* Checkbox + Nombre de encuesta */}
+      <div className="flex items-center gap-3 flex-1">
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={(e) => setIsChecked(e.target.checked)}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+        <div className="flex-1">
+          <div className="text-sm font-medium text-gray-900">
+            {encuesta.nombre}
           </div>
         </div>
+      </div>
 
-        {/* Número de respuestas */}
-        <div>
-          <div className="text-sm font-medium text-gray-900 mb-1">
-            Número de respuestas
-          </div>
-          <div className="text-sm text-blue-500 font-medium">
-            {encuesta.respuestas}
-          </div>
+      {/* Fecha */}
+      <div className="text-center min-w-24">
+        <div className="text-sm text-gray-600">
+          {encuesta.fecha}
         </div>
+      </div>
 
-        {/* Estado */}
-        <div>
-          <div className="text-sm font-medium text-gray-900 mb-1">
-            Estado
-          </div>
-          <div className="text-sm text-gray-600">
-            {encuesta.estado}
-          </div>
+      {/* Número de respuestas */}
+      <div className="text-center min-w-24">
+        <div className="text-sm font-medium text-gray-900">
+          {encuesta.respuestas}
         </div>
+      </div>
 
-        {/* Botón menú */}
-        <div className="flex justify-end">
-          <EncuestMenuButton idEncuesta={encuesta.id} />
-        </div>
+      {/* Estado */}
+      <div className="text-center min-w-20">
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(encuesta.estado)}`}>
+          {encuesta.estado}
+        </span>
+      </div>
+
+      {/* Botón menú */}
+      <div className="flex justify-end min-w-12">
+        <EncuestMenuButton idEncuesta={encuesta.id} />
       </div>
     </div>
   );

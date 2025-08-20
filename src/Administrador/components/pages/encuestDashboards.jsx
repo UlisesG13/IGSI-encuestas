@@ -17,21 +17,19 @@ const EncuestDashboards = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 md:gap-8 items-start max-w-full">
+                    {/* Sidebar izquierdo con tarjetas de estadísticas */}
                     <div className="flex flex-col gap-4 md:gap-6 order-2 lg:order-1">
                         <DashboardCards 
-                          numeroDepartamentos={30} 
+                          numeroDepartamentos={24} 
                           numeroEncuestas={1000} 
                           numeroEmpleados={1500} 
                         />
                     </div>
 
+                    {/* Contenido principal con lista de encuestas */}
                     <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
-                        <EncuestList></EncuestList>
-                    </div>
-
-                    <div className="flex flex-col gap-4 md:gap-6 order-3">
-                        {/* Aquí puedes poner formularios o filtros */}
+                        <EncuestList />
                     </div>
                 </div>
             </div>
