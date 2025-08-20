@@ -13,7 +13,7 @@ const DepartamentosDashboard = () => {
     {
       id: 1,
       nombreDepartamento: "24 March 2019",
-      descripcionDepartamento: "Tono es un mamaguebo",
+      descripcionDepartamento: "Tono es un chupa guebo",
       numeroEncuestas: "100"
     },
     {
