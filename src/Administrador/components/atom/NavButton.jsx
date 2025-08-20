@@ -12,7 +12,8 @@ const NavButton = ({ name, to }) => {
         padding: "10px 20px",
         margin: "0px 10px",
         borderRadius: "5px",
-        transition: "background 0.3s",  
+        transition: "background 0.3s", 
+       
       }}
       onMouseEnter={(e) => e.currentTarget.style.background = "#d90b0b59"}
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}

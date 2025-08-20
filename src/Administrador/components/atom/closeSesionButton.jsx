@@ -11,11 +11,12 @@ const CloseSesionButton = () => {
     border: "none",
     cursor: "pointer",
     padding: "5px",
-    color: "inherit"
+    color: "inherit",
+    
   };
 
   const hoverStyle = {
-    color: "red"
+    color: "blue"
   };
 
   return (

@@ -13,8 +13,7 @@ const PerfilButton = () => {
     background: "none",
     border: "none",
     cursor: "pointer",
-    padding: "5px",
-    color: "inherit"
+    padding: "5px"    
   };
 
   const hoverStyle = {

@@ -193,3 +193,44 @@
 .textarea-field-molecule__textarea::placeholder {
   color: #9ca3af;
 }
+
+.encuest-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #333;
+}
+
+.encuest-card__col {
+  flex: 1;
+  text-align: center;
+}
+
+.encuest-card__col--name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 2;
+  text-align: left;
+}
+
+.encuest-card__checkbox {
+  margin-right: 8px;
+}
+
+.encuest-card__date {
+  font-size: 12px;
+  color: #777;
+}
+
+.encuest-card__date-value {
+  color: #2b4c7e;
+  cursor: pointer;
+}
+
+.encuest-card__menu {
+  margin-left: auto;
+}

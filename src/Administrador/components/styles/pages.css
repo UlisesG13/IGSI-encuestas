@@ -7,7 +7,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.departamentos-dashboard__content {
+.departamentos-dashboard__content, .encuest-dashboards_content {
   width: 100%;
   max-width: 100%;
   margin: 0;
@@ -136,6 +136,90 @@
   border-color: #ea580c;
   box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
 }
+
+/* ===== ESTILOS PARA PÁGINAS ===== */
+
+/* EncuestDashboards */
+.encuest-dashboards {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.encuest-dashboards__content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 2rem;
+  min-height: calc(100vh - 80px); /* Ajustar para el header */
+}
+
+.encuest-dashboards__header {
+  margin-bottom: 2rem;
+}
+
+.encuest-dashboards__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.encuest-dashboards__description {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.encuest-dashboards__layout {
+  display: grid;
+  grid-template-columns: 300px 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+  max-width: 100%;
+}
+
+.encuest-dashboards__sidebar-left,
+.encuest-dashboards__sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.encuest-dashboards__main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .encuest-dashboards__layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .encuest-dashboards__sidebar-left,
+  .encuest-dashboards__sidebar-right {
+    order: 2;
+  }
+
+  .encuest-dashboards__main-content {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .encuest-dashboards__content {
+    padding: 1rem;
+  }
+
+  .encuest-dashboards__title {
+    font-size: 1.5rem;
+  }
+}
+
 
 /* Responsive Design */
 @media (max-width: 1400px) {

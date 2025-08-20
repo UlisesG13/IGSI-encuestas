@@ -9,17 +9,6 @@ const DepartamentosDashboard = () => {
     //let alumnos = "Ninguno";
     let titulo = "Dashboard de Departamentos";
 
-
-    const [nombre,setNombre] = useState("Victor");
-
-    let departamentos = [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5"
-    ]
-
     const listaDeDepartamentos = [
     {
       id: 1,
@@ -53,9 +42,6 @@ const DepartamentosDashboard = () => {
     }
   ];
 
-    const cambiarNombre = (nombre) => {
-      setNombre(nombre)
-    }
 
   return (
     <div className="departamentos-dashboard">
