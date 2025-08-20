@@ -4,7 +4,7 @@ import LabelAtom from '../atom/LabelAtom';
 
 const InputFieldMolecule = ({ label, name, type = "text", placeholder, value, onChange }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       <LabelAtom htmlFor={name}>{label}</LabelAtom>
       <InputAtom
         type={type}

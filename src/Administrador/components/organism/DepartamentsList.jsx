@@ -20,14 +20,14 @@ const DepartamentsList = ({ listaDeDepartamentos }) => {
   const departamentos = listaDeDepartamentos || departamentList;
 
   return (
-    <div className="departaments-list">
+    <div className="bg-white rounded-lg p-8 shadow-soft mb-8 w-full min-h-96 max-h-96 overflow-y-auto scrollbar-thin">
       {/* Título principal */}
-      <div className="departaments-list__header">
-        <h1 className="departaments-list__title">Departamentos</h1>
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Departamentos</h1>
       </div>
 
       {/* Contenedor de la lista */}
-      <div className="departaments-list__content">
+      <div className="flex flex-col gap-4">
         {departamentos.length > 0 ? (
           departamentos.map((departamento) => (
             <DepartamentCard
@@ -39,7 +39,7 @@ const DepartamentsList = ({ listaDeDepartamentos }) => {
             />
           ))
         ) : (
-          <div className="departaments-list__empty">
+          <div className="text-center py-12 text-gray-500 italic">
             No hay departamentos disponibles
           </div>
         )}

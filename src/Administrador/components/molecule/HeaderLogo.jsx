@@ -3,9 +3,9 @@ import NavButton from "../atom/NavButton";
 
 const HeaderLogo = () => {
   return (
-    <div className="header-logo">
+    <div className="flex items-center gap-4 flex-col">
         <Logo width={250} height={120} />
-        <div className="header-nav">
+        <div className="mt-2 mb-1">
           <NavButton name="Inicio" to="/" />
           <NavButton name="Departamentos" to="/" />      
           <NavButton name="Encuestas" to="/" />

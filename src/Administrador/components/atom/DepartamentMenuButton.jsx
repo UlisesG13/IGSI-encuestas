@@ -31,29 +31,29 @@ const DepartamentMenuButton = ({ idDepartamento }) => {
   }, []);
 
   return (
-    <div className="departament-menu-button" ref={menuRef}>
+    <div className="relative inline-block" ref={menuRef}>
       {/* Botón Menu */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="departament-menu-button__trigger"
+        className="px-4 py-2 border-2 border-primary-600 text-primary-600 rounded-lg bg-transparent cursor-pointer transition-all duration-200 ease-in-out hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
       >
         Menu
       </button>
 
       {/* Menú desplegable */}
       {isOpen && (
-        <div className="departament-menu-button__dropdown">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-large z-50">
           <div className="py-1">
             <button
               onClick={() => handleEdit(idDepartamento)}
-              className="departament-menu-button__item"
+              className="w-full text-left px-4 py-2 text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
             >
               Editar
             </button>
-            <hr className="departament-menu-button__divider" />
+            <hr className="border-0 border-t border-gray-200 m-0" />
             <button
               onClick={() => handleDelete(idDepartamento)}
-              className="departament-menu-button__item"
+              className="w-full text-left px-4 py-2 text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
             >
               Eliminar
             </button>

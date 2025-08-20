@@ -36,17 +36,17 @@ const DepartmentFormOrganism = () => {
   };
 
   return (
-    <div className="department-form-organism">
-      <div className="department-form-organism__header">
-        <h2 className="department-form-organism__title">Departamentos</h2>
+    <div className="bg-white rounded-lg p-8 shadow-soft w-full min-h-96">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Departamentos</h2>
       </div>
       
-      <form className="department-form-organism__form" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
         {/* Campo Nombre */}
-        <div className="department-form-organism__field">
-          <label className="department-form-organism__label">Nombre</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700">Nombre</label>
           <input
-            className="department-form-organism__input"
+            className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-primary-600 focus:ring-3 focus:ring-primary-100 placeholder-gray-400 text-gray-700 bg-white"
             name="nombre"
             type="text"
             placeholder="Value"
@@ -56,10 +56,10 @@ const DepartmentFormOrganism = () => {
         </div>
 
         {/* Campo Descripción */}
-        <div className="department-form-organism__field">
-          <label className="department-form-organism__label">Descripción</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700">Descripción</label>
           <textarea
-            className="department-form-organism__textarea"
+            className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm font-inherit resize-vertical min-h-24 transition-all duration-200 focus:outline-none focus:border-primary-600 focus:ring-3 focus:ring-primary-100 placeholder-gray-400 text-gray-700 bg-white"
             name="descripcion"
             placeholder="Hola mi nombre es tono"
             value={formData.descripcion}
@@ -70,7 +70,7 @@ const DepartmentFormOrganism = () => {
 
         {/* Botón de registro */}
         <button 
-          className="department-form-organism__button"
+          className="w-full py-3 px-6 bg-primary-600 hover:bg-primary-700 text-white rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-3 focus:ring-offset-2 focus:ring-primary-500"
           onClick={handleSubmit} 
           type="button"
         >

@@ -5,18 +5,7 @@ const NavButton = ({ name, to }) => {
   return (
     <Link
       to={to}
-      style={{
-        textDecoration: "none",
-        color: "white",
-        fontWeight: "bold",
-        padding: "10px 20px",
-        margin: "0px 10px",
-        borderRadius: "5px",
-        transition: "background 0.3s", 
-       
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.background = "#d90b0b59"}
-      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+      className="text-white font-bold px-5 py-2.5 mx-2.5 rounded-md transition-all duration-300 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
     >
       {name}
     </Link>

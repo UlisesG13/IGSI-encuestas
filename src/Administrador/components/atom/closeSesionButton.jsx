@@ -6,28 +6,13 @@ const CloseSesionButton = () => {
     alert("Cerrar sesión");
   };
 
-  const buttonStyle = {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    padding: "5px",
-    color: "inherit",
-    
-  };
-
-  const hoverStyle = {
-    color: "blue"
-  };
-
   return (
     <button
-      style={buttonStyle}
-      onMouseOver={(e) => e.currentTarget.style.color = hoverStyle.color}
-      onMouseOut={(e) => e.currentTarget.style.color = "inherit"}
+      className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-md cursor-pointer text-sm transition-all duration-200 hover:bg-white/20 hover:border-white/30"
       onClick={handleClick}
       title="Cerrar sesión"
     >
-      <FiLogOut size={24} />
+      <FiLogOut size={16} />
     </button>
   );
 };

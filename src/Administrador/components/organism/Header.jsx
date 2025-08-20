@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import HeaderLogo from "../molecule/HeaderLogo";
-import CloseSesionButton from "../atom/CloseSesionButton";
+import CloseSesionButton from "../atom/closeSesionButton";
 import PerfilButton from "../atom/PerfilButton";
 
 const Header = () => {
@@ -27,22 +27,22 @@ const Header = () => {
   }, [menuOpen]);
 
   return (
-    <header className="header">
-      <div className="header__left">
+    <header className="bg-gradient-to-br from-primary-500 to-primary-400 px-8 py-4 flex justify-between items-center shadow-md w-full z-100 text-white">
+      <div className="flex items-center gap-8">
         <CloseSesionButton />
       </div>
 
-      <div className="header__center">
+      <div className="flex items-center gap-8 flex-1 justify-center">
         <HeaderLogo />
       </div>
 
-      <div className="header__right">
+      <div className="flex items-center gap-4">
         <PerfilButton />
       </div>
 
       {/* Botón hamburguesa solo en pantallas pequeñas */}
       <button
-        className="header__menu-btn"
+        className="hidden text-3xl bg-none border-none text-white cursor-pointer md:hidden"
         onClick={() => setMenuOpen(!menuOpen)}
       >
         ☰
@@ -50,7 +50,7 @@ const Header = () => {
 
       {/* Menú desplegable */}
       {menuOpen && (
-        <nav ref={menuRef} className="header__dropdown">
+        <nav ref={menuRef} className="absolute top-15 right-2.5 bg-white rounded-lg shadow-lg p-4 flex flex-col text-left gap-4 min-w-36 z-200 md:hidden">
           <button className="dropdown__item">Perfil de usuario</button>
           <button className="dropdown__item">Cerrar sesión</button>
         </nav>
