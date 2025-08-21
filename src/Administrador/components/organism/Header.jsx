@@ -27,7 +27,7 @@ const Header = () => {
   }, [menuOpen]);
 
   return (
-    <header className="bg-gradient-to-br from-primary-500 to-primary-400 px-8 py-4 flex justify-between items-center shadow-md w-full z-100 text-white">
+    <header className="bg-gradient-to-br from-primary-700 to-primary-400 px-8 py-4 flex justify-between items-center shadow-md w-full z-100 text-white">
       <div className="flex items-center gap-8">
         <CloseSesionButton />
       </div>

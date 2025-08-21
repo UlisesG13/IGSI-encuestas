@@ -20,7 +20,7 @@ const DepartamentsList = ({ listaDeDepartamentos }) => {
   const departamentos = listaDeDepartamentos || departamentList;
 
   return (
-    <div className="bg-white rounded-lg p-8 shadow-soft mb-8 w-full min-h-96 max-h-96 overflow-y-auto scrollbar-thin">
+    <div className="bg-white rounded-lg p-8 shadow-soft mb-8 w-full min-h-90 max-h-100 overflow-y-auto scrollbar-thin">
       {/* Título principal */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Departamentos</h1>
