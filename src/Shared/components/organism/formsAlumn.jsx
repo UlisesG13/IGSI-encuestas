@@ -1,6 +1,7 @@
 import React from "react";
-
+import Header from "../organism/Header.jsx";
 const surveys = [
+	
 	{
 		name: "Nombre",
 		description: "Descripción",
@@ -25,26 +26,28 @@ const surveys = [
 
 export default function FormsAlumn() {
 	return (
-		<div className="w-full bg-gray-50 min-h-screen flex justify-center items-start pt-8">
-			<div className="bg-white rounded-xl shadow-sm w-11/12 max-w-6xl mx-auto p-8 md:p-6">
-				<h2 className="text-xl font-bold text-gray-800 mb-6">Encuestas</h2>
-				<div className="w-full">
-					{surveys.map((survey, idx) => (
-						<div className="border-b border-gray-100 py-6 pb-2" key={idx}>
-							<div className="flex justify-between items-start gap-4 md:flex-col md:gap-2">
-								<div>
-									<span className="font-semibold text-gray-800 text-base">{survey.name}</span>
-									<div className="text-gray-500 text-sm mt-0.5">{survey.description}</div>
+		
+			<div className="w-full bg-gray-50 min-h-screen flex justify-center items-start pt-8">
+				<div className="bg-white rounded-xl shadow-sm w-11/12 max-w-6xl mx-auto p-8 md:p-6">
+					<h2 className="text-xl font-bold text-gray-800 mb-6">Encuestas</h2>
+					<div className="w-full flex flex-col gap-4">
+						{surveys.map((survey, idx) => (
+							<div
+								className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100"
+								key={idx}
+							>
+								<div className="flex flex-col">
+									<span className="font-semibold text-gray-800 text-lg">{survey.name}</span>
+									<span className="text-gray-500 text-base mt-1">{survey.description}</span>
 								</div>
-								<div className="text-right md:text-left">
-									<span className="font-semibold text-gray-800 text-sm">Fecha límite</span>
-									<div className="text-gray-500 text-sm mt-0.5">{survey.date}</div>
+								<div className="flex flex-col text-right">
+									<span className="font-semibold text-gray-800 text-base">Fecha límite</span>
+									<span className="text-gray-500 text-base mt-1">{survey.date}</span>
 								</div>
 							</div>
-						</div>
-					))}
+						))}
+					</div>
 				</div>
 			</div>
-		</div>
 	);
 }
