@@ -26,7 +26,7 @@ const EncuestDashboards = () => {
                           numeroEmpleados={1500} 
                         />
                     </div>
-
+                    
                     {/* Contenido principal con lista de encuestas */}
                     <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
                         <EncuestList />

@@ -4,6 +4,7 @@ import EncuestDashboards from './Administrador/components/pages/encuestDashboard
 import Login from './Shared/components/pages/login.jsx';
 import PageNotFound from './Shared/components/pages/pageNotFound.jsx';
 import FormsAlumn from './Shared/components/organism/formsAlumn.jsx';
+import AlumnsDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
       <Route path="login" element={<Login />} />
       <Route path="/*" element={<PageNotFound />} />
       <Route path="formsAlumn" element={<FormsAlumn />} />
-
+      <Route path="alumnos" element={<AlumnsDashboard />} />
 
     </Routes>
   );

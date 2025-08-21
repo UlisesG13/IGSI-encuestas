@@ -18,17 +18,11 @@ const EncuestCard = ({ encuesta }) => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+    <div className="flex items-center justify-between gap-10 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
       {/* Checkbox + Nombre de encuesta */}
       <div className="flex items-center gap-3 flex-1">
-        <input
-          type="checkbox"
-          checked={isChecked}
-          onChange={(e) => setIsChecked(e.target.checked)}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
         <div className="flex-1">
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-gray-900 ">
             {encuesta.nombre}
           </div>
         </div>
@@ -49,8 +43,8 @@ const EncuestCard = ({ encuesta }) => {
       </div>
 
       {/* Estado */}
-      <div className="text-center min-w-20">
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(encuesta.estado)}`}>
+      <div className="text-rigth min-w-20">
+        <span className={`inline-flex  px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(encuesta.estado)}`}>
           {encuesta.estado}
         </span>
       </div>
