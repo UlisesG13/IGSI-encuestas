@@ -3,9 +3,8 @@ import DepartamentosDashboard from './Administrador/components/pages/Departament
 import EncuestDashboards from './Administrador/components/pages/encuestDashboards.jsx';
 import Login from './Shared/components/pages/login.jsx';
 import PageNotFound from './Shared/components/pages/pageNotFound.jsx';
+import { QuestionnairePage } from './Shared/components/pages/questionnairePage.jsx';
 import SurveyAlumn from './Shared/components/pages/surveyAlumn.jsx';
-import FormsAlumn from './Shared/components/organism/formsAlumn.jsx';
-import AlumnsDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 
 function App() {
   return (
@@ -15,10 +14,7 @@ function App() {
       <Route path="login" element={<Login />} />
       <Route path="/*" element={<PageNotFound />} />
       <Route path="formsAlumn" element={<SurveyAlumn />} />
-
-      <Route path="formsAlumn" element={<FormsAlumn />} />
-      <Route path="alumnos" element={<AlumnsDashboard />} />
-
+      <Route path="questionnaire" element={<QuestionnairePage />} />
     </Routes>
   );
 }
