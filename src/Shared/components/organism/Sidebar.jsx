@@ -39,7 +39,7 @@ export const Sidebar = ({
       {/* Header del sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
             <Icon name="user" size="md" color="white" />
           </div>
           <div>
