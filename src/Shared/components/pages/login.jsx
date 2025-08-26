@@ -44,7 +44,7 @@ export default function Login() {
     try {
       const data = await loginApi(formData.email, formData.password);
       // ✅ Redirigir al dashboard
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       setApiError(error.message || "Error al iniciar sesión");
     } finally {
