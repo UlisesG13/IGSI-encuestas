@@ -72,20 +72,25 @@ export const QuestionnaireTemplate = ({
             />
           )}
 
-          {/* Formulario de pregunta */}
-          <QuestionForm
-            question={currentQuestion?.text}
-            answer={currentQuestion?.answer || ''}
-            onAnswerChange={onAnswerChange}
-            questionNumber={questionNumber}
-            totalQuestions={totalQuestions}
-            onPrevious={() => onNavigate('previous')}
-            onNext={() => onNavigate('next')}
-            onSave={onSave}
-            isLoading={isLoading}
-            error={error}
-            autoSave={autoSave}
-          />
+          {/* Formulario de pregunta o pregunta personalizada */}
+          {typeof props.renderQuestion === 'function'
+            ? props.renderQuestion()
+            : (
+              <QuestionForm
+                question={currentQuestion?.text}
+                answer={currentQuestion?.answer || ''}
+                onAnswerChange={onAnswerChange}
+                questionNumber={questionNumber}
+                totalQuestions={totalQuestions}
+                onPrevious={() => onNavigate('previous')}
+                onNext={() => onNavigate('next')}
+                onSave={onSave}
+                isLoading={isLoading}
+                error={error}
+                autoSave={autoSave}
+              />
+            )
+          }
         </div>
       </div>
     </div>

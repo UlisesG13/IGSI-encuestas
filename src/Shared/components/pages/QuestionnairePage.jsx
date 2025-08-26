@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { QuestionnaireTemplate } from '../templates/QuestionnaireTemplate';
+import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
+import LikertQuestion from '../molecule/LikertQuestion.jsx';
+import { QuestionForm } from '../organism/QuestionForm';
 
 export const QuestionnairePage = ({
   initialData = {},
@@ -43,18 +46,27 @@ export const QuestionnairePage = ({
       { id: 2, text: '¿Cuál es tu fecha de nacimiento?', answer: '', answered: false },
       { id: 3, text: '¿Cuál es tu número de teléfono?', answer: '', answered: false },
       { id: 4, text: '¿Cuál es tu dirección de correo electrónico?', answer: '', answered: false },
-      { id: 5, text: '¿Cuál es tu dirección de residencia?', answer: '', answered: false }
+      { id: 5, text: '¿Cuál es tu dirección de residencia?', answer: '', answered: false },
+      // Ejemplo checklist y likert en sección personal
+      { id: 13, text: '¿Qué actividades realizas en tu tiempo libre?', type: 'checklist', options: ['Leer', 'Deporte', 'Música', 'Videojuegos', 'Viajar'], answer: [], answered: false },
+      { id: 14, text: '¿Qué tan satisfecho estás con tu vida personal?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
     ],
     academic: [
       { id: 6, text: '¿En qué institución estudias actualmente?', answer: '', answered: false },
       { id: 7, text: '¿Qué carrera o programa académico cursas?', answer: '', answered: false },
       { id: 8, text: '¿En qué semestre o año te encuentras?', answer: '', answered: false },
-      { id: 9, text: '¿Cuál es tu promedio académico actual?', answer: '', answered: false }
+      { id: 9, text: '¿Cuál es tu promedio académico actual?', answer: '', answered: false },
+      // Ejemplo checklist y likert en sección académica
+      { id: 15, text: '¿Qué recursos académicos utilizas?', type: 'checklist', options: ['Libros', 'Internet', 'Tutorías', 'Grupos de estudio'], answer: [], answered: false },
+      { id: 16, text: '¿Qué tan satisfecho estás con tu vida académica?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
     ],
     additional: [
       { id: 10, text: '¿Cuáles son tus pasatiempos favoritos?', answer: '', answered: false },
       { id: 11, text: '¿Practicas algún deporte?', answer: '', answered: false },
-      { id: 12, text: '¿Tienes alguna habilidad especial?', answer: '', answered: false }
+      { id: 12, text: '¿Tienes alguna habilidad especial?', answer: '', answered: false },
+      // Ejemplo checklist y likert en sección adicional
+      { id: 17, text: '¿Qué actividades informales realizas?', type: 'checklist', options: ['Redes sociales', 'Voluntariado', 'Viajes', 'Eventos'], answer: [], answered: false },
+      { id: 18, text: '¿Qué tan satisfecho estás con tus actividades informales?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
     ]
   });
 
@@ -91,15 +103,21 @@ export const QuestionnairePage = ({
   };
 
   const handleAnswerChange = (e) => {
-    const newAnswer = e.target.value;
-    
-    setQuestions(prev => prev.map((q, index) => 
-      index === currentQuestionIndex 
-        ? { ...q, answer: newAnswer, answered: newAnswer.trim() !== '' }
+    let newAnswer;
+    if (currentQuestion.type === 'checklist') {
+      newAnswer = e;
+    } else if (currentQuestion.type === 'likert') {
+      newAnswer = e;
+    } else {
+      newAnswer = e.target.value;
+    }
+
+    setQuestions(prev => prev.map((q, index) =>
+      index === currentQuestionIndex
+        ? { ...q, answer: newAnswer, answered: Array.isArray(newAnswer) ? newAnswer.length > 0 : newAnswer.trim() !== '' }
         : q
     ));
-    
-    // Limpiar error al empezar a escribir
+
     if (error) {
       setError(null);
     }
@@ -108,39 +126,40 @@ export const QuestionnairePage = ({
   const handleNavigate = async (direction) => {
     if (direction === 'next') {
       // Validar respuesta actual
-      if (!currentQuestion?.answer?.trim()) {
+      if (currentQuestion.type === 'checklist' && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
+        setError('Por favor, selecciona al menos una opción.');
+        return;
+      }
+      if (currentQuestion.type === 'likert' && !currentQuestion?.answer) {
+        setError('Por favor, selecciona una opción.');
+        return;
+      }
+      if (!currentQuestion.type && !currentQuestion?.answer?.trim()) {
         setError('Por favor, completa esta pregunta antes de continuar.');
         return;
       }
 
       setIsLoading(true);
-      
-      // Simular guardado
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Navegar a siguiente pregunta o sección
+
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else {
-        // Cambiar a siguiente sección si existe
         const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
         if (currentSectionIndex < sections.length - 1) {
           const nextSection = sections[currentSectionIndex + 1];
           handleSectionChange(nextSection.id);
         } else {
-          // Cuestionario completado
           handleComplete();
           return;
         }
       }
-      
       setIsLoading(false);
       setError(null);
     } else if (direction === 'previous') {
       if (currentQuestionIndex > 0) {
         setCurrentQuestionIndex(prev => prev - 1);
       } else {
-        // Ir a sección anterior si existe
         const currentSectionIndex = sections.findIndex(s => s.id === currentSectionId);
         if (currentSectionIndex > 0) {
           const prevSection = sections[currentSectionIndex - 1];
@@ -220,6 +239,47 @@ export const QuestionnairePage = ({
     return { ...section, status };
   });
 
+  // Renderizado de pregunta según tipo
+  const renderQuestion = () => {
+    if (!currentQuestion) return null;
+    if (currentQuestion.type === 'checklist') {
+      return (
+        <ChecklistQuestion
+          question={currentQuestion.text}
+          options={currentQuestion.options}
+          selected={currentQuestion.answer}
+          onChange={handleAnswerChange}
+        />
+      );
+    }
+    if (currentQuestion.type === 'likert') {
+      return (
+        <LikertQuestion
+          question={currentQuestion.text}
+          labels={currentQuestion.labels}
+          value={currentQuestion.answer}
+          onChange={handleAnswerChange}
+        />
+      );
+    }
+    // Pregunta tradicional (texto) o cualquier tipo
+    return (
+      <QuestionForm
+        question={currentQuestion.text}
+        answer={currentQuestion.answer}
+        onAnswerChange={handleAnswerChange}
+        questionNumber={currentQuestionIndex + 1}
+        totalQuestions={questions.length}
+        error={error}
+        isLoading={isLoading}
+        autoSave={true}
+        type={currentQuestion.type}
+        options={currentQuestion.options}
+        labels={currentQuestion.labels}
+      />
+    );
+  };
+
   return (
     <div className={`questionnaire-page ${className}`} {...props}>
       <QuestionnaireTemplate
@@ -240,6 +300,7 @@ export const QuestionnairePage = ({
         autoSave={true}
         showProgress={true}
         showHeader={true}
+        renderQuestion={renderQuestion}
       />
     </div>
   );
