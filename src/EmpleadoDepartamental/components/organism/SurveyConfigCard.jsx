@@ -1,6 +1,7 @@
 // src/components/organisms/SurveyConfigCard.tsx
 import { useState } from "react";
 import SurveyConfigForm from "../molecule/SurveyConfigForm";
+import QuestionsBackFace from "./QuestionsBackFace";
 
 const SurveyConfigCard = () => {
   const [flipped, setFlipped] = useState(false);
@@ -22,7 +23,7 @@ const SurveyConfigCard = () => {
 
           {/* Cara trasera (por ahora vacía, pero lista para más info) */}
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-xl rotate-y-180 backface-hidden">
-            <p className="text-gray-600">Otra información (pendiente)...</p>
+            <QuestionsBackFace />
           </div>
         </div>
       </div>
