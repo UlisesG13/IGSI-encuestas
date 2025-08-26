@@ -7,8 +7,9 @@ const HeaderLogo = () => {
         <Logo width={250} height={120} />
         <div className="mt-2 mb-1">
           <NavButton name="Inicio" to="/" />
-          <NavButton name="Departamentos" to="/" />      
-          <NavButton name="Encuestas" to="/" />
+          <NavButton name="Encuestas" to="/encuestas" />
+          <NavButton name="Empleados" to="/empleados" />
+
         </div>
     </div>
   );

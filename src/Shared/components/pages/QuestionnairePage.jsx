@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QuestionnaireTemplate } from '../templates/QuestionnaireTemplate';
+import Header from '../organism/Header.jsx';
 import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
 import LikertQuestion from '../molecule/LikertQuestion.jsx';
 import { QuestionForm } from '../organism/QuestionForm';
@@ -11,6 +13,7 @@ export const QuestionnairePage = ({
   className = '',
   ...props
 }) => {
+  const navigate = useNavigate();
   // Estados principales
   const [currentSectionId, setCurrentSectionId] = useState('personal');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -199,10 +202,7 @@ export const QuestionnairePage = ({
   };
 
   const handleExit = () => {
-    if (window.confirm('¿Estás seguro de que quieres salir? Se guardará tu progreso actual.')) {
-      handleSave();
-      // Aquí podrías redirigir o cerrar la aplicación
-    }
+    navigate('/dashboardAlumnos');
   };
 
   const handleComplete = () => {
@@ -220,7 +220,7 @@ export const QuestionnairePage = ({
     if (onComplete) {
       onComplete(completionData);
     }
-
+    
     console.log('Cuestionario completado:', completionData);
   };
 
@@ -276,12 +276,15 @@ export const QuestionnairePage = ({
         type={currentQuestion.type}
         options={currentQuestion.options}
         labels={currentQuestion.labels}
+        onNext={() => handleNavigate('next')}
+        onPrevious={() => handleNavigate('previous')}
       />
     );
   };
 
   return (
     <div className={`questionnaire-page ${className}`} {...props}>
+      <Header />
       <QuestionnaireTemplate
         userInfo={userInfo}
         sections={updatedSections}

@@ -6,19 +6,31 @@ import PageNotFound from './Shared/components/pages/pageNotFound.jsx';
 import AlumnsDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 import { QuestionnairePage } from './Shared/components/pages/questionnairePage.jsx';
 import SurveyAlumn from './Shared/components/pages/surveyAlumn.jsx';
+import EmployersDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
+import CreateSurveyPage from './EmpleadoDepartamental/components/pages/CreateSurveyPage.jsx';
+import EncuestList from './Administrador/components/organism/EncuestList.jsx';
 
 
 
 function App() {
   return (
     <Routes>
+      {/* admin routes */}
       <Route path="/" element={<DepartamentosDashboard />} />
       <Route path="/encuestas" element={<EncuestDashboards />} />
+      <Route path="/empleados" element={<EmployersDashboard />} />
+      
+      {/* alumnos routes */}
+      <Route path="dashboardAlumnos" element={<SurveyAlumn />} />
+      <Route path="formulariosAlumnos" element={<QuestionnairePage />} />
+
+      {/* EmpleadoDepartamental routes */}
+      <Route path="crearEncuestas" element={<CreateSurveyPage />} />
+      <Route path="encuestasLista" element={<EncuestList />} />
+
+
       <Route path="login" element={<Login />} />
       <Route path="/*" element={<PageNotFound />} />
-      <Route path="formsAlumn" element={<QuestionnairePage />} />
-      <Route path="survey" element={<SurveyAlumn />} />
-      <Route path="alumnos" element={<AlumnsDashboard />} />
 
     </Routes>
   );
