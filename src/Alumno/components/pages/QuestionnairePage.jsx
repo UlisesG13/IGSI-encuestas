@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { QuestionnaireTemplate } from '../templates/QuestionnaireTemplate';
+import { QuestionnaireTemplate } from '../template/QuestionnaireTemplate.jsx';
 import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
 import LikertQuestion from '../molecule/LikertQuestion.jsx';
-import { QuestionForm } from '../organism/QuestionForm';
+import { QuestionForm } from '../organism/QuestionForm.jsx';
 
 export const QuestionnairePage = ({
   initialData = {},

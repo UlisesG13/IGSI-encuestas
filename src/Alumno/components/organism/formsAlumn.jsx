@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../organism/Header.jsx";
+import Header from "./Header.jsx";
 const surveys = [
 	
 	{

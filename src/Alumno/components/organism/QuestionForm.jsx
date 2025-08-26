@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { QuestionCard } from '../molecule/QuestionCard';
-import { NavigationButtons } from '../molecule/NavigationButtons';
-import { ProgressIndicator } from '../molecule/ProgressIndicator';
+import { QuestionCard } from '../molecule/QuestionCard.jsx';
+import { NavigationButtons } from '../molecule/NavigationButtons.jsx';
+import { ProgressIndicator } from '../molecule/ProgressIndicator.jsx';
 
 export const QuestionForm = ({ 
   question,
