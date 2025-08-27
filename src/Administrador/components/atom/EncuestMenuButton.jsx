@@ -1,19 +1,31 @@
 import { useState, useRef, useEffect } from 'react';
 import { MoreVertical } from 'lucide-react';
 
-const EncuestMenuButton = ({ idEncuesta }) => {
+const EncuestMenuButton = ({ idEncuesta, onSoftDelete, onRestaurar, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // Función para manejar la edición
-  const handleEdit = (id) => {
-    alert(`Ver encuesta: ${id}`);
+  // Función para manejar soft delete
+  const handleSoftDelete = async (id) => {
+    if (onSoftDelete) {
+      await onSoftDelete(id);
+    }
     setIsOpen(false);
   };
 
-  // Función para manejar la eliminación
-  const handleDelete = (id) => {
-    alert(`Eliminar encuesta: ${id}`);
+  // Función para manejar restaurar
+  const handleRestaurar = async (id) => {
+    if (onRestaurar) {
+      await onRestaurar(id);
+    }
+    setIsOpen(false);
+  };
+
+  // Función para manejar hard delete
+  const handleDelete = async (id) => {
+    if (onDelete) {
+      await onDelete(id);
+    }
     setIsOpen(false);
   };
 
@@ -43,13 +55,20 @@ const EncuestMenuButton = ({ idEncuesta }) => {
 
       {/* Menú desplegable */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-large z-50">
+        <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-large z-50">
           <div className="py-1">
             <button
-              onClick={() => handleEdit(idEncuesta)}
+              onClick={() => handleSoftDelete(idEncuesta)}
               className="w-full text-left px-3 py-2 text-sm text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-gray-100 focus:outline-none"
             >
-              Ver
+              Deshabilitar
+            </button>
+            <hr className="border-0 border-t border-gray-200 m-0" />
+            <button
+              onClick={() => handleRestaurar(idEncuesta)}
+              className="w-full text-left px-3 py-2 text-sm text-green-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-green-50 focus:outline-none"
+            >
+              Restaurar
             </button>
             <hr className="border-0 border-t border-gray-200 m-0" />
             <button

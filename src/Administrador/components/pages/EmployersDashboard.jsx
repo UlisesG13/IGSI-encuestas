@@ -1,46 +1,89 @@
 import Header from "../organism/Header";
 import DashboardCards from "../molecule/DashboardCards";
 import EmployersList from "../organism/EmployersList";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import EmployersFormOrganism from "../organism/EmployersFormOrganims";
+import { getUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario } from "../../../Shared/services/authService";
+import { getDepartamentos } from "../../services/departamentosService";
 
 const EmployersDashboard = () => {
 
     const titulo = "Dashboard de Empleados";
 
 
-    const listaDeEmpleados = [
-    {
-      id: 1,
-      nombre: "Juan Perez",
-      correo: "juanperez@gmail.com",
-      idDepartamento: "1",
-    },
-    {
-      id: 2,
-      nombre: "Maria Gomez",
-      correo: "mariagomez@gmail.com",
-      idDepartamento: "2",
-    },
-    {
-      id: 3,
-      nombre: "Pedro Rodriguez",
-      correo: "pedrorodriguez@gmail.com",
-      idDepartamento: "3",
-    },
-    {
-      id: 4,
-      nombre: "Ana Martinez",
-      correo: "anamartinez@gmail.com",
-      idDepartamento: "4",
-    },
-    {
-      id: 5,
-      nombre: "Luis Garcia",
-      correo: "luisgarcia@gmail.com",
-      idDepartamento: "5",
-    }
-  ];
+    const [usuarios, setUsuarios] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [departamentos, setDepartamentos] = useState([]);
+
+    const fetchUsuarios = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getUsuarios();
+        setUsuarios(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError("No se pudieron cargar los usuarios");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchDepartamentos = async () => {
+      try {
+        const data = await getDepartamentos();
+        setDepartamentos(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Error loading departments:", e);
+      }
+    };
+
+    useEffect(() => {
+      fetchUsuarios();
+      fetchDepartamentos();
+    }, []);
+
+    const getDepartamentoName = (idDepartamento) => {
+      const dept = departamentos.find(d => d.idDepartamento === idDepartamento);
+      return dept ? dept.nombre : `ID: ${idDepartamento}`;
+    };
+
+    const listaDeEmpleados = useMemo(() => {
+      return usuarios.map(u => ({
+        id: u.idUsuario,
+        nombre: u.nombre,
+        correo: u.correo,
+        idDepartamento: u.idDepartamento,
+        nombreDepartamento: getDepartamentoName(u.idDepartamento),
+      }));
+    }, [usuarios, departamentos]);
+
+    const handleCreate = async ({ nombre, correo, contraseña, rol, departamento }) => {
+      await crearUsuario({
+        nombre,
+        correo,
+        password: contraseña,
+        rol,
+        idDepartamento: Number(departamento) || 0,
+      });
+      await fetchUsuarios();
+    };
+
+    const handleEdit = async (idUsuario, { nombre, correo, contraseña, rol, departamento }) => {
+      await actualizarUsuario(idUsuario, {
+        nombre,
+        correo,
+        password: contraseña,
+        rol,
+        idDepartamento: Number(departamento) || 0,
+      });
+      await fetchUsuarios();
+    };
+
+    const handleDelete = async (idUsuario) => {
+      await eliminarUsuario(idUsuario);
+      await fetchUsuarios();
+    };
 
 
   return (
@@ -63,12 +106,18 @@ const EmployersDashboard = () => {
           />
         </div>
         
-        <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100">
-          <EmployersList listaDeEmpleados={listaDeEmpleados} />
+        <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
+          <EmployersList 
+            listaDeEmpleados={listaDeEmpleados} 
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            loading={loading}
+            error={error}
+          />
         </div>
         
         <div className="flex flex-col gap-4 md:gap-6 order-3">
-          <EmployersFormOrganism />
+          <EmployersFormOrganism onCreate={handleCreate} departamentos={departamentos} />
         </div>
       </div>
       

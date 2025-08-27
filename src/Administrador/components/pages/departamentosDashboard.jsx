@@ -2,45 +2,75 @@ import Header from "../organism/Header";
 import DashboardCards from "../molecule/DashboardCards";
 import DepartamentsList from "../organism/DepartamentsList";
 import DepartmentFormOrganism from "../organism/DepartmentFormOrganism";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  getDepartamentos,
+  createDepartamento,
+  updateDepartamento,
+  softDeleteDepartamento,
+  deleteDepartamento,
+} from "../../services/departamentosService";
 
 const DepartamentosDashboard = () => {
 
-    //let alumnos = "Ninguno";
     let titulo = "Dashboard de Departamentos";
+    const [departamentos, setDepartamentos] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const listaDeDepartamentos = [
-    {
-      id: 1,
-      nombreDepartamento: "24 March 2019",
-      descripcionDepartamento: "Tono es un chupa guebo",
-      numeroEncuestas: "100"
-    },
-    {
-      id: 2,
-      nombreDepartamento: "15 April 2019", 
-      descripcionDepartamento: "Departamento de recursos humanos encargado de la gestión del personal",
-      numeroEncuestas: "85"
-    },
-    {
-      id: 3,
-      nombreDepartamento: "02 May 2019",
-      descripcionDepartamento: "Departamento de tecnología y sistemas de información",
-      numeroEncuestas: "120"
-    },
-    {
-      id: 4,
-      nombreDepartamento: "18 June 2019",
-      descripcionDepartamento: "Departamento de marketing y comunicaciones corporativas",
-      numeroEncuestas: "95"
-    },
-    {
-      id: 5,
-      nombreDepartamento: "30 July 2019",
-      descripcionDepartamento: "Departamento de finanzas y contabilidad general",
-      numeroEncuestas: "110"
-    }
-  ];
+    const fetchDepartamentos = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getDepartamentos();
+        setDepartamentos(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError("No se pudieron cargar los departamentos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchDepartamentos();
+    }, []);
+
+    const listaDeDepartamentos = useMemo(() => {
+      return departamentos.map((d) => ({
+        id: d.idDepartamento,
+        nombreDepartamento: d.nombre,
+        descripcionDepartamento: d.descripcion,
+        numeroEncuestas: d.numeroEncuestas ?? 0,
+      }));
+    }, [departamentos]);
+
+    const handleCreate = async ({ nombre, descripcion }) => {
+      await createDepartamento({ nombre, descripcion });
+      await fetchDepartamentos();
+    };
+
+    const handleEdit = async (idDepartamento, { nombre, descripcion }) => {
+      await updateDepartamento(idDepartamento, { nombre, descripcion });
+      await fetchDepartamentos();
+    };
+
+    const handleSoftDelete = async (idDepartamento) => {
+      try {
+        await softDeleteDepartamento(idDepartamento);
+        await fetchDepartamentos();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const handleHardDelete = async (idDepartamento) => {
+      try {
+        await deleteDepartamento(idDepartamento);
+        await fetchDepartamentos();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
 
 
   return (
@@ -63,12 +93,19 @@ const DepartamentosDashboard = () => {
             />
           </div>
           
-          <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100">
-            <DepartamentsList listaDeDepartamentos={listaDeDepartamentos} />
+          <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
+            <DepartamentsList 
+              listaDeDepartamentos={listaDeDepartamentos} 
+              onEdit={handleEdit}
+              onSoftDelete={handleSoftDelete}
+              onDelete={handleHardDelete}
+              loading={loading}
+              error={error}
+            />
           </div>
           
           <div className="flex flex-col gap-4 md:gap-6 order-3">
-            <DepartmentFormOrganism />
+            <DepartmentFormOrganism onCreate={handleCreate} />
           </div>
         </div>
         

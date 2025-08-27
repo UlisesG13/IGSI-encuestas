@@ -1,6 +1,6 @@
 import EncuestCard from "../molecule/EncuestCard";
 
-const EncuestList = ({ encuestas }) => {
+const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, loading, error }) => {
   // Lista de encuestas por defecto
   const encuestasDefault = [
     {
@@ -57,7 +57,7 @@ const EncuestList = ({ encuestas }) => {
       </div>
 
       {/* Header de columnas */}
-      <div className="flex items-center justify-between gap-4 p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+      <div className="flex items-center justify-between gap-6 p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
         <div className="flex items-center gap-3 flex-1">
           <div className="w-4 h-4"></div> {/* Espacio para checkbox */}
           <div className="flex-1">
@@ -94,9 +94,27 @@ const EncuestList = ({ encuestas }) => {
 
       {/* Lista de encuestas */}
       <div className="max-h-96 overflow-y-auto scrollbar-thin">
-        {encuestasToShow.map(encuesta => (
-          <EncuestCard key={encuesta.id} encuesta={encuesta} />
-        ))}
+        {loading && (
+          <div className="text-center py-12 text-gray-500">Cargando...</div>
+        )}
+        {error && (
+          <div className="text-center py-12 text-red-500">{error}</div>
+        )}
+        {!loading && !error && encuestasToShow.length > 0 ? (
+          encuestasToShow.map(encuesta => (
+            <EncuestCard 
+              key={encuesta.id} 
+              encuesta={encuesta}
+              onSoftDelete={onSoftDelete}
+              onRestaurar={onRestaurar}
+              onDelete={onDelete}
+            />
+          ))
+        ) : !loading && !error ? (
+          <div className="text-center py-12 text-gray-500 italic">
+            No hay encuestas disponibles
+          </div>
+        ) : null}
       </div>
     </div>
   );
