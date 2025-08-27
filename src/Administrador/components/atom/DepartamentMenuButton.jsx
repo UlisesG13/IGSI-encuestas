@@ -1,18 +1,38 @@
 import { useState, useRef, useEffect } from 'react';
 
-const DepartamentMenuButton = ({ idDepartamento }) => {
+const DepartamentMenuButton = ({ idDepartamento, onEdit, onSoftDelete, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
   // Función para manejar la edición
-  const handleEdit = (id) => {
-    alert(`Editado: ${id}`);
+  const handleEdit = async (id) => {
+    if (!onEdit) {
+      setIsOpen(false);
+      return;
+    }
+    const nombre = prompt('Nuevo nombre del departamento:');
+    if (nombre === null) return; // cancelado
+    const descripcion = prompt('Nueva descripción del departamento:');
+    if (descripcion === null) return;
+    await onEdit(id, { nombre, descripcion });
     setIsOpen(false);
   };
 
-  // Función para manejar la eliminación
-  const handleDelete = (id) => {
-    alert(`Eliminado: ${id}`);
+  // Función para manejar la eliminación (soft)
+  const handleSoftDeleteClick = async (id) => {
+    if (onSoftDelete) {
+      await onSoftDelete(id);
+    }
+    setIsOpen(false);
+  };
+
+  // Función para manejar la eliminación (hard)
+  const handleDelete = async (id) => {
+    if (onDelete) {
+      const confirmDelete = confirm('¿Eliminar permanentemente este departamento?');
+      if (!confirmDelete) return;
+      await onDelete(id);
+    }
     setIsOpen(false);
   };
 
@@ -52,10 +72,17 @@ const DepartamentMenuButton = ({ idDepartamento }) => {
             </button>
             <hr className="border-0 border-t border-gray-200 m-0" />
             <button
+              onClick={() => handleSoftDeleteClick(idDepartamento)}
+              className="w-full text-left px-4 py-2 text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
+            >
+              Eliminar (Soft)
+            </button>
+            <hr className="border-0 border-t border-gray-200 m-0" />
+            <button
               onClick={() => handleDelete(idDepartamento)}
               className="w-full text-left px-4 py-2 text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 ease-in-out hover:bg-gray-100 focus:outline-none"
             >
-              Eliminar
+              Eliminar (Hard)
             </button>
           </div>
         </div>

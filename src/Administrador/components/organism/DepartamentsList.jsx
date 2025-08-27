@@ -1,6 +1,6 @@
 import DepartamentCard from "../molecule/DepartamentCard";
 
-const DepartamentsList = ({ listaDeDepartamentos }) => {
+const DepartamentsList = ({ listaDeDepartamentos, onEdit, onSoftDelete, onDelete, loading, error }) => {
   const departamentList = [
     {
       id: 1,
@@ -28,6 +28,12 @@ const DepartamentsList = ({ listaDeDepartamentos }) => {
 
       {/* Contenedor de la lista */}
       <div className="flex flex-col gap-4">
+        {loading && (
+          <div className="text-center py-12 text-gray-500">Cargando...</div>
+        )}
+        {error && (
+          <div className="text-center py-12 text-red-500">{error}</div>
+        )}
         {departamentos.length > 0 ? (
           departamentos.map((departamento) => (
             <DepartamentCard
@@ -36,6 +42,9 @@ const DepartamentsList = ({ listaDeDepartamentos }) => {
               descripcionDepartamento={departamento.descripcionDepartamento}
               numeroEncuestas={departamento.numeroEncuestas}
               idDepartamento={departamento.id}
+              onEdit={onEdit}
+              onSoftDelete={onSoftDelete}
+              onDelete={onDelete}
             />
           ))
         ) : (

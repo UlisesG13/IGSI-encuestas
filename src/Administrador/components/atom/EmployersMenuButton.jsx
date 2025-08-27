@@ -1,18 +1,37 @@
 import { useState, useRef, useEffect } from 'react';
 
-const EmployersMenuButton = ({ idEmpleado }) => {
+const EmployersMenuButton = ({ idEmpleado, onEdit, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
   // Función para manejar la edición
-  const handleEdit = (id) => {
-    alert(`Editado: ${id}`);
+  const handleEdit = async (id) => {
+    if (!onEdit) {
+      setIsOpen(false);
+      return;
+    }
+    const nombre = prompt('Nuevo nombre:');
+    if (nombre === null) return;
+    const correo = prompt('Nuevo correo:');
+    if (correo === null) return;
+    const contraseña = prompt('Nueva contraseña (opcional, deja vacío para no cambiar):') || undefined;
+    const rol = prompt('Nuevo rol (AdminGeneral/Empleado):');
+    if (rol === null) return;
+    const departamento = prompt('Nuevo idDepartamento (número):');
+    if (departamento === null) return;
+    await onEdit(id, { nombre, correo, contraseña, rol, departamento });
     setIsOpen(false);
   };
 
   // Función para manejar la eliminación
-  const handleDelete = (id) => {
-    alert(`Eliminado: ${id}`);
+  const handleDelete = async (id) => {
+    if (!onDelete) {
+      setIsOpen(false);
+      return;
+    }
+    const ok = confirm('¿Eliminar este usuario?');
+    if (!ok) return;
+    await onDelete(id);
     setIsOpen(false);
   };
 

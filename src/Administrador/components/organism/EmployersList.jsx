@@ -1,6 +1,6 @@
 import EmployersCard from "../molecule/EmployersCard";
 
-const EmployersList = ({ listaDeEmpleados }) => {
+const EmployersList = ({ listaDeEmpleados, onEdit, onDelete, loading, error }) => {
   const employersList = [
     {
       id: 1,
@@ -28,6 +28,12 @@ const EmployersList = ({ listaDeEmpleados }) => {
 
       {/* Contenedor de la lista */}
       <div className="flex flex-col gap-4">
+        {loading && (
+          <div className="text-center py-12 text-gray-500">Cargando...</div>
+        )}
+        {error && (
+          <div className="text-center py-12 text-red-500">{error}</div>
+        )}
         {empleados.length > 0 ? (
           empleados.map((empleado) => (
             <EmployersCard
@@ -35,6 +41,10 @@ const EmployersList = ({ listaDeEmpleados }) => {
               nombre={empleado.nombre}
               correo={empleado.correo}
               idDepartamento={empleado.idDepartamento}
+              nombreDepartamento={empleado.nombreDepartamento}
+              idEmpleado={empleado.id}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))
         ) : (

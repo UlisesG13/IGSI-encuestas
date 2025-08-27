@@ -1,10 +1,70 @@
-import React from "react";     
+import React, { useEffect, useMemo, useState } from "react";     
 import Header from "../organism/Header"; 
 import DashboardCards from "../molecule/DashboardCards";
 import EncuestList from "../organism/EncuestList";
+import { getEncuestas, softDeleteEncuesta, restaurarEncuesta, deleteEncuesta } from "../../services/encuestasService";
 
 const EncuestDashboards = () => {
     const titulo = "Dashboard de Encuestas";
+    const [encuestas, setEncuestas] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const fetchEncuestas = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getEncuestas();
+        setEncuestas(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError("No se pudieron cargar las encuestas");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchEncuestas();
+    }, []);
+
+    const listaDeEncuestas = useMemo(() => {
+      return encuestas.map(e => ({
+        id: e.idEncuesta,
+        nombre: e.titulo,
+        fecha: `${e.fechaInicio} - ${e.fechaFin}`,
+        respuestas: e.numeroRespuestas || 0,
+        estado: e.estado,
+      }));
+    }, [encuestas]);
+
+    const handleSoftDelete = async (idEncuesta) => {
+      try {
+        await softDeleteEncuesta(idEncuesta);
+        await fetchEncuestas();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const handleRestaurar = async (idEncuesta) => {
+      try {
+        await restaurarEncuesta(idEncuesta);
+        await fetchEncuestas();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const handleDelete = async (idEncuesta) => {
+      try {
+        const confirmDelete = confirm('¿Eliminar permanentemente esta encuesta?');
+        if (!confirmDelete) return;
+        await deleteEncuesta(idEncuesta);
+        await fetchEncuestas();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
@@ -29,7 +89,14 @@ const EncuestDashboards = () => {
                     
                     {/* Contenido principal con lista de encuestas */}
                     <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
-                        <EncuestList />
+                        <EncuestList 
+                          encuestas={listaDeEncuestas}
+                          onSoftDelete={handleSoftDelete}
+                          onRestaurar={handleRestaurar}
+                          onDelete={handleDelete}
+                          loading={loading}
+                          error={error}
+                        />
                     </div>
                 </div>
             </div>

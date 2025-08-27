@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const EmployersFormOrganism = () => {
+const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     correo: '',
@@ -17,15 +17,16 @@ const EmployersFormOrganism = () => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validación básica
     if (!formData.nombre.trim() || !formData.correo.trim() || !formData.contraseña.trim() || !formData.rol.trim() || !formData.departamento.trim()) {
       alert('Por favor, completa todos los campos');
       return;
     }
 
-    // Simular registro
-    alert(`Empleado registrado:\nNombre: ${formData.nombre}\nCorreo: ${formData.correo}\nRol: ${formData.rol}\nDepartamento: ${formData.departamento}`);
+    if (onCreate) {
+      await onCreate({ ...formData });
+    }
     
     // Limpiar formulario
     setFormData({
@@ -101,14 +102,19 @@ const EmployersFormOrganism = () => {
         {/* Campo Departamento */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">Departamento</label>
-          <input
-            className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder-gray-400 text-gray-700 bg-white"
+          <select
+            className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-700 bg-white cursor-pointer"
             name="departamento"
-            type="text"
-            placeholder="IGSI"
             value={formData.departamento}
             onChange={handleInputChange}
-          />
+          >
+            <option value="" disabled className="text-gray-400">Selecciona un departamento</option>
+            {departamentos.map(dept => (
+              <option key={dept.idDepartamento} value={dept.idDepartamento}>
+                {dept.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Botón de registro */}

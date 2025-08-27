@@ -4,7 +4,7 @@ import TextareaFieldMolecule from '../molecule/TextareaFieldMolecule';
 import ButtonAtom from '../atom/ButtomAtom';
 
 
-const DepartmentFormOrganism = () => {
+const DepartmentFormOrganism = ({ onCreate }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: ''
@@ -18,15 +18,16 @@ const DepartmentFormOrganism = () => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validación básica
     if (!formData.nombre.trim() || !formData.descripcion.trim()) {
       alert('Por favor, completa todos los campos');
       return;
     }
 
-    // Simular registro
-    alert(`Departamento registrado:\nNombre: ${formData.nombre}\nDescripción: ${formData.descripcion}`);
+    if (onCreate) {
+      await onCreate({ nombre: formData.nombre, descripcion: formData.descripcion });
+    }
     
     // Limpiar formulario
     setFormData({
@@ -41,7 +42,7 @@ const DepartmentFormOrganism = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Departamentos</h2>
       </div>
       
-      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-6" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
         {/* Campo Nombre */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">Nombre</label>
