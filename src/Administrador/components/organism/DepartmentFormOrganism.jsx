@@ -49,7 +49,7 @@ const DepartmentFormOrganism = () => {
             className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-primary-600 focus:ring-3 focus:ring-primary-100 placeholder-gray-400 text-gray-700 bg-white"
             name="nombre"
             type="text"
-            placeholder="Value"
+            placeholder="Nombre del departamento"
             value={formData.nombre}
             onChange={handleInputChange}
           />
@@ -61,7 +61,7 @@ const DepartmentFormOrganism = () => {
           <textarea
             className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm font-inherit resize-vertical min-h-24 transition-all duration-200 focus:outline-none focus:border-primary-600 focus:ring-3 focus:ring-primary-100 placeholder-gray-400 text-gray-700 bg-white"
             name="descripcion"
-            placeholder="Hola mi nombre es tono"
+            placeholder="Descripción"
             value={formData.descripcion}
             onChange={handleInputChange}
             rows={4}

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DeleteSectionButton from "../atom/DeleteSectionButton.jsx";
 import SectionButton from "../atom/SectionButton.jsx";
 import AddSectionButton from "../atom/AddSectionButton";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -26,8 +27,15 @@ const SectionList = () => {
     setSections([...sections, { id: newId, label: `Nueva sección ${newId}` }]);
   };
 
+  const handleDeleteSection = (id) => {
+    setSections(sections.filter(section => section.id !== id));
+    if (selectedId === id && sections.length > 1) {
+      setSelectedId(sections[0].id);
+    }
+  };
+
   return (
-    <div className="flex flex-col w-64 bg-white rounded-lg shadow-md p-4">
+    <div className="flex flex-col w-64 bg-white rounded-lg shadow-md p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100">
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="sections">
           {(provided) => (
@@ -39,12 +47,14 @@ const SectionList = () => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
+                      className="flex items-center gap-2"
                     >
                       <SectionButton
                         label={section.label}
                         selected={selectedId === section.id}
                         onClick={() => setSelectedId(section.id)}
                       />
+                      <DeleteSectionButton onClick={() => handleDeleteSection(section.id)} />
                     </div>
                   )}
                 </Draggable>

@@ -11,9 +11,13 @@ const CreateSurveyPage = () => {
       {/* luego metemos el "Bienvenido" */}
         <WelcomeMessage />
         {/* aquí luego metemos la tarjeta central con los inputs */}
-        <div className="mt-10 flex justify-center gap-6">
-        <SectionList />
-        <SurveyConfigCard></SurveyConfigCard>
+        <div className="mt-10 flex justify-center gap-10">
+          <div className="w-[340px] min-w-[340px]">
+            <SectionList />
+          </div>
+          <div className="w-[600px] min-w-[400px]">
+            <SurveyConfigCard />
+          </div>
         </div>
       
       <div className="h-[60vh]" />

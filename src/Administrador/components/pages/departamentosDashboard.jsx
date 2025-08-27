@@ -63,7 +63,7 @@ const DepartamentosDashboard = () => {
             />
           </div>
           
-          <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
+          <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100">
             <DepartamentsList listaDeDepartamentos={listaDeDepartamentos} />
           </div>
           

@@ -13,7 +13,19 @@ const EmployersList = ({ listaDeEmpleados }) => {
       nombre: "Maria Gomez",
       correo: "mariagomez@gmail.com",
       idDepartamento: "2",
-    }
+    },
+    {
+      id: 3,
+      nombre: "Carlos Ruiz",
+      correo: "carlosruiz@gmail.com",
+      idDepartamento: "2",
+    },
+    {
+      id: 3,
+      nombre: "Carlos Ruiz",
+      correo: "carlosruiz@gmail.com",
+      idDepartamento: "2",
+    },
   ];
 
   // Usar la lista pasada como prop o la lista por defecto

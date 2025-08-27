@@ -31,9 +31,6 @@ function App() {
 
       <Route path="login" element={<Login />} />
       <Route path="/*" element={<PageNotFound />} />
-      <Route path="formsAlumn" element={<QuestionnairePage />} />
-      <Route path="survey" element={<SurveyAlumn />} />
-      <Route path="alumnos" element={<AlumnsDashboard />} />
 
     </Routes>
   );

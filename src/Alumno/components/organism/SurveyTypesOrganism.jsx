@@ -22,6 +22,8 @@ export default function SurveyTypesOrganism() {
           value={likertValue}
           onChange={setLikertValue}
         />
+
+        
       </div>
     </div>
   );

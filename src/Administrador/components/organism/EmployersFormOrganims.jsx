@@ -51,7 +51,7 @@ const EmployersFormOrganism = () => {
             className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder-gray-400 text-gray-700 bg-white"
             name="nombre"
             type="text"
-            placeholder="Tono Florencio"
+            placeholder="Nombre del empleado"
             value={formData.nombre}
             onChange={handleInputChange}
           />

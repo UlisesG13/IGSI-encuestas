@@ -7,7 +7,6 @@ const HeaderLogo = () => {
       <Logo width={250} height={120} />
       <div className="flex gap-8 mt-2">
         <NavButton name="Inicio" to="/dashboardAlumnos" />
-        <NavButton name="Encuestas" to="/" />
       </div>
     </div>
   );
