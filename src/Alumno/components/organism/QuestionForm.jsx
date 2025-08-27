@@ -39,24 +39,52 @@ export const QuestionForm = ({
     if (props.type === 'checklist' && props.options) {
       const ChecklistQuestion = require('../molecule/ChecklistQuestion.jsx').default;
       return (
-        <ChecklistQuestion
-          question={question}
-          options={props.options}
-          selected={answer}
-          onChange={onAnswerChange}
-        />
+        <div>
+          <ChecklistQuestion
+            question={question}
+            options={props.options}
+            selected={answer}
+            onChange={onAnswerChange}
+          />
+          <div className="mt-6">
+            <NavigationButtons
+              onPrevious={onPrevious}
+              onNext={onNext}
+              showPrevious={!isFirstQuestion}
+              showNext={true}
+              disablePrevious={!canGoPrevious || isLoading}
+              disableNext={isLoading}
+              previousText="Anterior pregunta"
+              nextText={isLastQuestion ? "Finalizar" : "Siguiente"}
+            />
+          </div>
+        </div>
       );
     }
     // Likert
     if (props.type === 'likert' && props.labels) {
       const LikertQuestion = require('../molecule/LikertQuestion.jsx').default;
       return (
-        <LikertQuestion
-          question={question}
-          labels={props.labels}
-          value={answer}
-          onChange={onAnswerChange}
-        />
+        <div>
+          <LikertQuestion
+            question={question}
+            labels={props.labels}
+            value={answer}
+            onChange={onAnswerChange}
+          />
+          <div className="mt-6">
+            <NavigationButtons
+              onPrevious={onPrevious}
+              onNext={onNext}
+              showPrevious={!isFirstQuestion}
+              showNext={true}
+              disablePrevious={!canGoPrevious || isLoading}
+              disableNext={isLoading}
+              previousText="Anterior pregunta"
+              nextText={isLastQuestion ? "Finalizar" : "Siguiente"}
+            />
+          </div>
+        </div>
       );
     }
     // Pregunta tradicional

@@ -6,7 +6,7 @@ const PerfilButton = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate("/perfilDelUsuario"); // Ruta a la que quieres ir
+    navigate("/login"); // Ruta a la que quieres ir
   };
 
   return (

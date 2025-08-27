@@ -36,9 +36,6 @@ const Header = () => {
         <HeaderLogo />
       </div>
 
-      <div className="flex items-center gap-4">
-        <PerfilButton />
-      </div>
 
       {/* Botón hamburguesa solo en pantallas pequeñas */}
       <button

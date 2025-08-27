@@ -1,5 +1,6 @@
 import React from "react";
-import Header from "./Header.jsx";
+import Header from "../organism/Header.jsx";
+import { useNavigate } from "react-router-dom";
 const surveys = [
 	
 	{
@@ -25,6 +26,10 @@ const surveys = [
 ];
 
 export default function FormsAlumn() {
+  const navigate = useNavigate();
+  const handleSurveyClick = () => {
+    navigate('/formulariosAlumnos'); // Ruta de QuestionnairePage
+  };
 	return (
 		
 			<div className="w-full bg-gray-50 min-h-screen flex justify-center items-start pt-8">
@@ -33,8 +38,9 @@ export default function FormsAlumn() {
 					<div className="w-full flex flex-col gap-4">
 						{surveys.map((survey, idx) => (
 							<div
-								className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100"
+								className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100 cursor-pointer hover:bg-orange-50"
 								key={idx}
+								onClick={handleSurveyClick}
 							>
 								<div className="flex flex-col">
 									<span className="font-semibold text-gray-800 text-lg">{survey.name}</span>
