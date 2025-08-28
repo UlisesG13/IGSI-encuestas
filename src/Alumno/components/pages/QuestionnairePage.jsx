@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { QuestionnaireTemplate } from '../template/QuestionnaireTemplate';
 import Header from '../organism/Header.jsx';
 import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
 import LikertQuestion from '../molecule/LikertQuestion.jsx';
 import { QuestionForm } from '../organism/QuestionForm.jsx';
-import { getEncuestaCompleta, getTiposPregunta } from '../../../Shared/services/encuestasService.jsx';
+import { encuestasService } from '../../services/encuestasService.jsx';
 
 export const QuestionnairePage = ({
   initialData = {},
@@ -15,151 +15,143 @@ export const QuestionnairePage = ({
   ...props
 }) => {
   const navigate = useNavigate();
-  const { idEncuesta } = useParams();
-  
   // Estados principales
-  const [currentSectionId, setCurrentSectionId] = useState(null);
+  const [currentSectionId, setCurrentSectionId] = useState('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [encuestaData, setEncuestaData] = useState(null);
-  const [tiposPregunta, setTiposPregunta] = useState({});
-
-  // Estados para datos dinámicos
   const [sections, setSections] = useState([]);
   const [questionsData, setQuestionsData] = useState({});
-
-  // Estados derivados
   const [questions, setQuestions] = useState([]);
   const [userInfo] = useState({
     name: initialData.name || 'Usuario',
     role: initialData.role || 'Estudiante'
   });
 
-  // Cargar datos de la encuesta al montar el componente
+  // Cargar encuesta completa al entrar a la página
   useEffect(() => {
-    let isMounted = true;
-    
-    const loadEncuestaData = async () => {
-      if (!idEncuesta) return;
-      
+    const cargarEncuestaCompleta = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
+        const idEncuesta = encuestasService.getEncuestaIdFromUrl();
         
-        // Cargar encuesta completa y tipos de pregunta en paralelo
-        const [encuestaCompleta, tiposPreguntaData] = await Promise.all([
-          getEncuestaCompleta(idEncuesta),
-          getTiposPregunta()
-        ]);
-        
-        if (!isMounted) return;
-        
-        setEncuestaData(encuestaCompleta);
-        
-        // Debug: mostrar la estructura completa de la encuesta
-        console.log('Encuesta completa recibida:', encuestaCompleta);
-        
-        // Crear mapeo de tipos de pregunta
-        const tiposMap = {};
-        tiposPreguntaData.forEach(tipo => {
-          tiposMap[tipo.idTipo] = tipo.nombre;
-        });
-        setTiposPregunta(tiposMap);
-        
-        // Procesar secciones
-        const seccionesProcesadas = encuestaCompleta.secciones?.map(seccion => ({
-          id: seccion.idSeccion.toString(),
-          icon: 'section',
-          text: seccion.titulo,
-          status: 'pending',
-          descripcion: seccion.descripcion,
-          orden: seccion.orden
-        })).sort((a, b) => a.orden - b.orden) || [];
-        
-        setSections(seccionesProcesadas);
-        
-        // Procesar preguntas por sección
-        const preguntasPorSeccion = {};
-        encuestaCompleta.secciones?.forEach(seccion => {
-          const preguntasProcesadas = seccion.preguntas?.map(pregunta => {
-            // Debug: mostrar el tipo de pregunta que viene del API
-            console.log('Pregunta:', pregunta.textoPregunta, 'ID Tipo:', pregunta.idTipoPregunta);
-            
-            // Mapear el tipo de pregunta según la tabla proporcionada
-            let tipoPregunta = 'texto'; // default
-            switch (pregunta.idTipoPregunta) {
-              case 1: // Opción Múltiple
-                tipoPregunta = 'opcion-unica';
-                break;
-              case 2: // Checklist
-                tipoPregunta = 'checklist';
-                break;
-              case 3: // Escala Likert
-                tipoPregunta = 'likert';
-                break;
-              case 4: // Abierta
-                tipoPregunta = 'texto';
-                break;
-              case 5: // Verdadero/Falso
-                tipoPregunta = 'verdadero-falso';
-                break;
-              default:
-                tipoPregunta = 'texto';
-            }
-            
-                         console.log('Tipo mapeado:', tipoPregunta, 'Respuestas posibles:', pregunta.respuestasPosibles?.length || 0);
-             console.log('Respuestas posibles completas:', pregunta.respuestasPosibles);
-            
-            return {
+        if (idEncuesta) {
+          console.log('ID de encuesta encontrado:', idEncuesta);
+          
+          const encuestaCompleta = await encuestasService.getEncuestaCompleta(idEncuesta);
+          
+          console.log('=== ESTRUCTURA DE LA ENCUESTA COMPLETA ===');
+          console.log('Encuesta completa:', encuestaCompleta);
+          console.log('==========================================');
+          
+          // Procesar los datos de la encuesta
+          setEncuestaData(encuestaCompleta);
+          
+          // Convertir secciones al formato que necesita la aplicación
+          const seccionesProcesadas = encuestaCompleta.secciones.map(seccion => ({
+            id: seccion.idSeccion.toString(),
+            icon: getIconForSection(seccion.titulo),
+            text: seccion.titulo,
+            status: 'pending',
+            descripcion: seccion.descripcion,
+            orden: seccion.orden
+          }));
+          
+          setSections(seccionesProcesadas);
+          
+          // Convertir preguntas al formato que necesita la aplicación
+          const preguntasProcesadas = {};
+          encuestaCompleta.secciones.forEach(seccion => {
+            preguntasProcesadas[seccion.idSeccion.toString()] = seccion.preguntas.map(pregunta => ({
               id: pregunta.idPregunta,
               text: pregunta.textoPregunta,
-              type: tipoPregunta,
-              answer: '',
+              type: mapQuestionType(pregunta.idTipoPregunta),
+              answer: getDefaultAnswer(pregunta.idTipoPregunta),
               answered: false,
+              requerida: true, // Por defecto todas las preguntas son requeridas
+              orden: pregunta.orden,
               ayuda: pregunta.ayuda,
               puntaje: pregunta.puntaje,
-              orden: pregunta.orden,
-              respuestasPosibles: pregunta.respuestasPosibles || []
-            };
-          }).sort((a, b) => a.orden - b.orden) || [];
+              options: pregunta.respuestas ? pregunta.respuestas.map(resp => resp.textoRespuesta) : [],
+              labels: pregunta.respuestas ? pregunta.respuestas.map(resp => resp.textoRespuesta) : [],
+              respuestas: pregunta.respuestas || []
+            }));
+          });
           
-          preguntasPorSeccion[seccion.idSeccion.toString()] = preguntasProcesadas;
-        });
-        
-        setQuestionsData(preguntasPorSeccion);
-        
-        // Establecer primera sección como activa
-        if (seccionesProcesadas.length > 0) {
-          setCurrentSectionId(seccionesProcesadas[0].id);
+          setQuestionsData(preguntasProcesadas);
+          
+          // Establecer la primera sección como activa
+          if (seccionesProcesadas.length > 0) {
+            setCurrentSectionId(seccionesProcesadas[0].id);
+          }
+          
+        } else {
+          console.log('No se encontró ID de encuesta en la URL');
+          setError('No se encontró ID de encuesta en la URL');
         }
-        
-      } catch (err) {
-        if (isMounted) {
-          console.error('Error cargando encuesta:', err);
-          setError('Error al cargar la encuesta. Por favor, intenta de nuevo.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      } catch (error) {
+        console.error('Error al cargar la encuesta completa:', error);
+        setError('Error al cargar la encuesta. Por favor, intenta de nuevo.');
       }
     };
-    
-    loadEncuestaData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [idEncuesta]);
+
+    cargarEncuestaCompleta();
+  }, []);
 
   // Actualizar preguntas cuando cambia la sección
   useEffect(() => {
-    if (!currentSectionId) return;
     const sectionQuestions = questionsData[currentSectionId] || [];
     setQuestions(sectionQuestions);
     setCurrentQuestionIndex(0);
   }, [currentSectionId, questionsData]);
+
+  // Funciones auxiliares para procesar datos de la encuesta
+  const getIconForSection = (titulo) => {
+    const tituloLower = titulo.toLowerCase();
+    if (tituloLower.includes('personal')) return 'user';
+    if (tituloLower.includes('académic') || tituloLower.includes('academic')) return 'academic';
+    if (tituloLower.includes('satisfacción') || tituloLower.includes('satisfaccion')) return 'star';
+    if (tituloLower.includes('general')) return 'info';
+    return 'document';
+  };
+
+  const mapQuestionType = (idTipoPregunta) => {
+    // Mapear idTipoPregunta a tipos de pregunta
+    switch (parseInt(idTipoPregunta)) {
+      case 1: // Opción única (radio)
+        return 'radio';
+      case 2: // Múltiple selección (checklist)
+        return 'checklist';
+      case 3: // Escala Likert
+        return 'likert';
+      case 4: // Texto corto
+        return 'text';
+      case 5: // Texto largo
+        return 'textarea';
+      case 6: // Número
+        return 'number';
+      case 7: // Fecha
+        return 'date';
+      case 8: // Email
+        return 'email';
+      case 9: // Teléfono
+        return 'tel';
+      default:
+        return 'text';
+    }
+  };
+
+  const getDefaultAnswer = (idTipoPregunta) => {
+    switch (parseInt(idTipoPregunta)) {
+      case 2: // Múltiple selección
+        return [];
+      case 1: // Opción única
+      case 3: // Likert
+        return '';
+      default:
+        return '';
+    }
+  };
 
   // Pregunta actual
   const currentQuestion = questions[currentQuestionIndex];
@@ -181,9 +173,11 @@ export const QuestionnairePage = ({
 
   const handleAnswerChange = (e) => {
     let newAnswer;
-    if (currentQuestion.type === 'checklist' || currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'verdadero-falso') {
+    if (currentQuestion.type === 'checklist') {
       newAnswer = e;
     } else if (currentQuestion.type === 'likert') {
+      newAnswer = e;
+    } else if (currentQuestion.type === 'radio') {
       newAnswer = e;
     } else {
       newAnswer = e.target.value;
@@ -195,6 +189,16 @@ export const QuestionnairePage = ({
         : q
     ));
 
+    // También actualizar questionsData para mantener consistencia
+    setQuestionsData(prev => ({
+      ...prev,
+      [currentSectionId]: prev[currentSectionId].map((q, index) =>
+        index === currentQuestionIndex
+          ? { ...q, answer: newAnswer, answered: Array.isArray(newAnswer) ? newAnswer.length > 0 : newAnswer.trim() !== '' }
+          : q
+      )
+    }));
+
     if (error) {
       setError(null);
     }
@@ -202,18 +206,24 @@ export const QuestionnairePage = ({
 
   const handleNavigate = async (direction) => {
     if (direction === 'next') {
-      // Validar respuesta actual
-      if ((currentQuestion.type === 'checklist' || currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'verdadero-falso') && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
-        setError('Por favor, selecciona al menos una opción.');
-        return;
-      }
-      if (currentQuestion.type === 'likert' && !currentQuestion?.answer) {
-        setError('Por favor, selecciona una opción.');
-        return;
-      }
-      if (!currentQuestion.type && !currentQuestion?.answer?.trim()) {
-        setError('Por favor, completa esta pregunta antes de continuar.');
-        return;
+      // Validar respuesta actual si es requerida
+      if (currentQuestion.requerida) {
+        if (currentQuestion.type === 'checklist' && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
+          setError('Por favor, selecciona al menos una opción.');
+          return;
+        }
+        if (currentQuestion.type === 'likert' && !currentQuestion?.answer) {
+          setError('Por favor, selecciona una opción.');
+          return;
+        }
+        if (currentQuestion.type === 'radio' && !currentQuestion?.answer) {
+          setError('Por favor, selecciona una opción.');
+          return;
+        }
+        if ((currentQuestion.type === 'text' || currentQuestion.type === 'textarea' || currentQuestion.type === 'number' || currentQuestion.type === 'date' || currentQuestion.type === 'tel' || currentQuestion.type === 'email') && !currentQuestion?.answer?.trim()) {
+          setError('Por favor, completa esta pregunta antes de continuar.');
+          return;
+        }
       }
 
       setIsLoading(true);
@@ -254,7 +264,6 @@ export const QuestionnairePage = ({
     
     try {
       const progressData = {
-        idEncuesta: idEncuesta,
         currentSection: currentSectionId,
         currentQuestion: currentQuestionIndex,
         answers: questionsData,
@@ -285,7 +294,8 @@ export const QuestionnairePage = ({
     const completedAnswers = allAnswers.filter(q => q.answered);
     
     const completionData = {
-      idEncuesta: idEncuesta,
+      idEncuesta: encuestaData?.idEncuesta,
+      tituloEncuesta: encuestaData?.titulo,
       totalQuestions: allAnswers.length,
       completedQuestions: completedAnswers.length,
       completionRate: (completedAnswers.length / allAnswers.length) * 100,
@@ -298,6 +308,9 @@ export const QuestionnairePage = ({
     }
     
     console.log('Cuestionario completado:', completionData);
+    
+    // Aquí podrías enviar las respuestas al backend
+    // enviarRespuestas(completionData);
   };
 
   // Actualizar estado de secciones basado en respuestas
@@ -319,82 +332,72 @@ export const QuestionnairePage = ({
   const renderQuestion = () => {
     if (!currentQuestion) return null;
     
-    // Debug: mostrar información de la pregunta actual
-    console.log('Renderizando pregunta:', {
-      text: currentQuestion.text,
-      type: currentQuestion.type,
-      respuestasPosibles: currentQuestion.respuestasPosibles?.length || 0
-    });
+    // Agregar texto de ayuda si existe
+    const questionWithHelp = currentQuestion.ayuda 
+      ? `${currentQuestion.text}\n\n💡 ${currentQuestion.ayuda}`
+      : currentQuestion.text;
     
-    // Para preguntas con respuestas posibles (múltiple opción, checklist, etc.)
-    if (currentQuestion.respuestasPosibles && currentQuestion.respuestasPosibles.length > 0) {
-      const options = currentQuestion.respuestasPosibles.map(resp => resp.textoRespuesta);
-      
-      if (currentQuestion.type === 'opcion-unica') {
-        console.log('Renderizando opción única con:', options);
-        return (
-          <ChecklistQuestion
-            question={currentQuestion.text}
-            options={options}
-            selected={currentQuestion.answer}
-            onChange={handleAnswerChange}
-            singleSelect={true}
-          />
-        );
-      } else if (currentQuestion.type === 'checklist') {
-        console.log('Renderizando checklist con:', options);
-        return (
-          <ChecklistQuestion
-            question={currentQuestion.text}
-            options={options}
-            selected={currentQuestion.answer}
-            onChange={handleAnswerChange}
-            singleSelect={false}
-          />
-        );
-      } else if (currentQuestion.type === 'verdadero-falso') {
-        console.log('Renderizando verdadero/falso');
-        return (
-          <ChecklistQuestion
-            question={currentQuestion.text}
-            options={['Verdadero', 'Falso']}
-            selected={currentQuestion.answer}
-            onChange={handleAnswerChange}
-            singleSelect={true}
-          />
-        );
-      }
-    } else {
-      // Si no hay respuestas posibles pero el tipo es checklist o opción única, 
-      // intentar obtener las respuestas del API
-      if (currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'checklist') {
-        console.log('No hay respuestas posibles para:', currentQuestion.type, 'Intentando obtener del API...');
-        // Por ahora, mostrar un mensaje de error
-        return (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600">Error: No se pudieron cargar las opciones para esta pregunta.</p>
-            <p className="text-sm text-red-500 mt-1">Tipo: {currentQuestion.type}</p>
-          </div>
-        );
-      }
-    }
-    
-    if (currentQuestion.type === 'likert') {
-      console.log('Renderizando escala Likert');
+    if (currentQuestion.type === 'checklist') {
       return (
-        <LikertQuestion
-          question={currentQuestion.text}
-          labels={['Muy en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Muy de acuerdo']}
-          value={currentQuestion.answer}
-          onChange={handleAnswerChange}
+        <QuestionForm
+          question={questionWithHelp}
+          answer={currentQuestion.answer}
+          onAnswerChange={handleAnswerChange}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={questions.length}
+          error={error}
+          isLoading={isLoading}
+          autoSave={true}
+          type="checklist"
+          options={currentQuestion.options}
+          onNext={() => handleNavigate('next')}
+          onPrevious={() => handleNavigate('previous')}
         />
       );
     }
     
-    // Pregunta tradicional (texto) o cualquier tipo
+    if (currentQuestion.type === 'likert') {
+      return (
+        <QuestionForm
+          question={questionWithHelp}
+          answer={currentQuestion.answer}
+          onAnswerChange={handleAnswerChange}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={questions.length}
+          error={error}
+          isLoading={isLoading}
+          autoSave={true}
+          type="likert"
+          labels={currentQuestion.labels}
+          onNext={() => handleNavigate('next')}
+          onPrevious={() => handleNavigate('previous')}
+        />
+      );
+    }
+    
+    if (currentQuestion.type === 'radio') {
+      return (
+        <QuestionForm
+          question={questionWithHelp}
+          answer={currentQuestion.answer}
+          onAnswerChange={handleAnswerChange}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={questions.length}
+          error={error}
+          isLoading={isLoading}
+          autoSave={true}
+          type="radio"
+          options={currentQuestion.options}
+          onNext={() => handleNavigate('next')}
+          onPrevious={() => handleNavigate('previous')}
+        />
+      );
+    }
+    
+    // Pregunta tradicional (texto, textarea, number, date, etc.)
     return (
       <QuestionForm
-        question={currentQuestion.text}
+        question={questionWithHelp}
         answer={currentQuestion.answer}
         onAnswerChange={handleAnswerChange}
         questionNumber={currentQuestionIndex + 1}
@@ -403,21 +406,23 @@ export const QuestionnairePage = ({
         isLoading={isLoading}
         autoSave={true}
         type={currentQuestion.type}
-        options={currentQuestion.respuestasPosibles?.map(resp => resp.textoRespuesta) || []}
-        labels={['1', '2', '3', '4', '5']}
+        required={currentQuestion.requerida}
         onNext={() => handleNavigate('next')}
         onPrevious={() => handleNavigate('previous')}
       />
     );
   };
 
-  // Mostrar loading mientras se cargan los datos
-  if (isLoading && !encuestaData) {
+  // Mostrar estado de carga si no hay datos de encuesta
+  if (!encuestaData && !error) {
     return (
-      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando encuesta...</p>
+      <div className={`questionnaire-page ${className}`} {...props}>
+        <Header />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando encuesta...</p>
+          </div>
         </div>
       </div>
     );
@@ -426,26 +431,20 @@ export const QuestionnairePage = ({
   // Mostrar error si no se pudo cargar la encuesta
   if (error && !encuestaData) {
     return (
-      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Si no hay idEncuesta, mostrar mensaje
-  if (!idEncuesta) {
-    return (
-      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No se especificó una encuesta</p>
+      <div className={`questionnaire-page ${className}`} {...props}>
+        <Header />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Error al cargar la encuesta</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Intentar de nuevo
+            </button>
+          </div>
         </div>
       </div>
     );

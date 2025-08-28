@@ -63,8 +63,8 @@ export const QuestionnaireTemplate = ({
 
         {/* Área principal */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Progress panel opcional */}
-          {showProgress && (
+          {/* Progress panel opcional - solo mostrar si no hay renderQuestion personalizado */}
+          {showProgress && !props.renderQuestion && (
             <QuestionProgress
               questions={questions}
               currentQuestionIndex={currentQuestionIndex}
