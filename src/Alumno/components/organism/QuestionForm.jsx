@@ -40,51 +40,23 @@ export const QuestionForm = ({
     // Checklist
     if (props.type === 'checklist' && props.options) {
       return (
-        <div>
-          <ChecklistQuestion
-            question={question}
-            options={props.options}
-            selected={answer}
-            onChange={onAnswerChange}
-          />
-          <div className="mt-6">
-            <NavigationButtons
-              onPrevious={onPrevious}
-              onNext={onNext}
-              showPrevious={!isFirstQuestion}
-              showNext={true}
-              disablePrevious={!canGoPrevious || isLoading}
-              disableNext={isLoading}
-              previousText="Anterior pregunta"
-              nextText={isLastQuestion ? "Finalizar" : "Siguiente"}
-            />
-          </div>
-        </div>
+        <ChecklistQuestion
+          question={question}
+          options={props.options}
+          selected={answer}
+          onChange={onAnswerChange}
+        />
       );
     }
     // Likert
     if (props.type === 'likert' && props.labels) {
       return (
-        <div>
-          <LikertQuestion
-            question={question}
-            labels={props.labels}
-            value={answer}
-            onChange={onAnswerChange}
-          />
-          <div className="mt-6">
-            <NavigationButtons
-              onPrevious={onPrevious}
-              onNext={onNext}
-              showPrevious={!isFirstQuestion}
-              showNext={true}
-              disablePrevious={!canGoPrevious || isLoading}
-              disableNext={isLoading}
-              previousText="Anterior pregunta"
-              nextText={isLastQuestion ? "Finalizar" : "Siguiente"}
-            />
-          </div>
-        </div>
+        <LikertQuestion
+          question={question}
+          labels={props.labels}
+          value={answer}
+          onChange={onAnswerChange}
+        />
       );
     }
     // Pregunta tradicional
