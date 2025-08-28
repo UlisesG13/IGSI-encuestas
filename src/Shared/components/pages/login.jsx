@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ para navegación SPA
+import { useNavigate } from "react-router-dom"; 
 import { ArrowRight, Facebook, Instagram, Twitter } from "lucide-react";
 import logoIGSI from '../../../assets/logoIGSI.png';
 import imgLogin from '../../../assets/imgLogin.webp';
 import { login as loginApi } from '../../services/authService';
 
 export default function Login() {
-  const navigate = useNavigate(); // hook para redirigir
+  const navigate = useNavigate(); 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -43,7 +43,6 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginApi(formData.email, formData.password);
-      // ✅ Redirigir al dashboard
       navigate("/");
     } catch (error) {
       setApiError(error.message || "Error al iniciar sesión");
@@ -54,7 +53,6 @@ export default function Login() {
 
   return (
     <div className="flex h-screen">
-      {/* Lado izquierdo: imagen y logo */}
       <div className="w-1/2 relative flex items-center justify-center overflow-hidden">
         <img src={imgLogin} alt="Fondo" className="absolute inset-0 w-full h-full object-cover z-0" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10">
@@ -62,13 +60,12 @@ export default function Login() {
           <span className="text-white text-lg font-semibold tracking-wider text-center mt-2 drop-shadow-lg">ENCUESTAS</span>
         </div>
         <div className="absolute left-8 bottom-8 flex gap-4">
-          <a href="#" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Facebook size={18} /></a>
-          <a href="#" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Instagram size={18} /></a>
-          <a href="#" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Twitter size={18} /></a>
+          <a href="https://www.facebook.com/UniversidadelSur" target="_blank" rel="noopener noreferrer" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Facebook size={18} /></a>
+          <a href="https://www.instagram.com/unidelsur?igsh=NmQwanpwOWh6N3J1" target="_blank" rel="noopener noreferrer" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Instagram size={18} /></a>
+          <a href="https://x.com/unidelsur" target="_blank" rel="noopener noreferrer" className="bg-white text-amber-500 rounded-full w-9 h-9 flex items-center justify-center shadow-sm hover:opacity-80"><Twitter size={18} /></a>
         </div>
       </div>
 
-      {/* Lado derecho: formulario */}
       <div className="w-1/2 bg-white flex items-center justify-center">
         <form className="w-10/12 max-w-md flex flex-col" onSubmit={handleSubmit}>
           <h2 className="text-3xl text-gray-800 font-bold mb-2">Inicio de sesión</h2>
