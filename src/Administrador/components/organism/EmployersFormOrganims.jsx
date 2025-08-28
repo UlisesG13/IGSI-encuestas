@@ -94,8 +94,8 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
             onChange={handleInputChange}
           >
             <option value="" disabled className="text-gray-400">Selecciona un rol</option>
-            <option value="Administrador">Administrador</option>
-            <option value="Empleado departamental">Empleado departamental</option>
+            <option value="AdminGeneral">Administrador</option>
+            <option value="Empleado">Empleado departamental</option>
           </select>
         </div>
 
