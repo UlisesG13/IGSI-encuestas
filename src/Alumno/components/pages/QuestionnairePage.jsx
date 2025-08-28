@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { QuestionnaireTemplate } from '../template/QuestionnaireTemplate';
 import Header from '../organism/Header.jsx';
 import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
 import LikertQuestion from '../molecule/LikertQuestion.jsx';
 import { QuestionForm } from '../organism/QuestionForm.jsx';
+import { getEncuestaCompleta, getTiposPregunta } from '../../../Shared/services/encuestasService.jsx';
 
 export const QuestionnairePage = ({
   initialData = {},
@@ -14,78 +15,151 @@ export const QuestionnairePage = ({
   ...props
 }) => {
   const navigate = useNavigate();
+  const { idEncuesta } = useParams();
+  
   // Estados principales
-  const [currentSectionId, setCurrentSectionId] = useState('personal');
+  const [currentSectionId, setCurrentSectionId] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [encuestaData, setEncuestaData] = useState(null);
+  const [tiposPregunta, setTiposPregunta] = useState({});
 
-  // Configuración de secciones
-  const [sections] = useState([
-    {
-      id: 'personal',
-      icon: 'user',
-      text: 'Datos personales',
-      status: 'draft'
-    },
-    {
-      id: 'academic',
-      icon: 'academic',
-      text: 'Datos escolares',
-      status: 'pending'
-    },
-    {
-      id: 'additional',
-      icon: 'info',
-      text: 'Datos informales',
-      status: 'pending'
-    }
-  ]);
-
-  // Datos de preguntas por sección
-  const [questionsData] = useState({
-    personal: [
-      { id: 1, text: '¿Cuál es tu nombre completo?', answer: '', answered: false },
-      { id: 2, text: '¿Cuál es tu fecha de nacimiento?', answer: '', answered: false },
-      { id: 3, text: '¿Cuál es tu número de teléfono?', answer: '', answered: false },
-      { id: 4, text: '¿Cuál es tu dirección de correo electrónico?', answer: '', answered: false },
-      { id: 5, text: '¿Cuál es tu dirección de residencia?', answer: '', answered: false },
-      // Ejemplo checklist y likert en sección personal
-      { id: 13, text: '¿Qué actividades realizas en tu tiempo libre?', type: 'checklist', options: ['Leer', 'Deporte', 'Música', 'Videojuegos', 'Viajar'], answer: [], answered: false },
-      { id: 14, text: '¿Qué tan satisfecho estás con tu vida personal?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
-    ],
-    academic: [
-      { id: 6, text: '¿En qué institución estudias actualmente?', answer: '', answered: false },
-      { id: 7, text: '¿Qué carrera o programa académico cursas?', answer: '', answered: false },
-      { id: 8, text: '¿En qué semestre o año te encuentras?', answer: '', answered: false },
-      { id: 9, text: '¿Cuál es tu promedio académico actual?', answer: '', answered: false },
-      // Ejemplo checklist y likert en sección académica
-      { id: 15, text: '¿Qué recursos académicos utilizas?', type: 'checklist', options: ['Libros', 'Internet', 'Tutorías', 'Grupos de estudio'], answer: [], answered: false },
-      { id: 16, text: '¿Qué tan satisfecho estás con tu vida académica?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
-    ],
-    additional: [
-      { id: 10, text: '¿Cuáles son tus pasatiempos favoritos?', answer: '', answered: false },
-      { id: 11, text: '¿Practicas algún deporte?', answer: '', answered: false },
-      { id: 12, text: '¿Tienes alguna habilidad especial?', answer: '', answered: false },
-      // Ejemplo checklist y likert en sección adicional
-      { id: 17, text: '¿Qué actividades informales realizas?', type: 'checklist', options: ['Redes sociales', 'Voluntariado', 'Viajes', 'Eventos'], answer: [], answered: false },
-      { id: 18, text: '¿Qué tan satisfecho estás con tus actividades informales?', type: 'likert', labels: ['1', '2', '3', '4', '5'], answer: '', answered: false }
-    ]
-  });
+  // Estados para datos dinámicos
+  const [sections, setSections] = useState([]);
+  const [questionsData, setQuestionsData] = useState({});
 
   // Estados derivados
-  const [questions, setQuestions] = useState(questionsData[currentSectionId] || []);
+  const [questions, setQuestions] = useState([]);
   const [userInfo] = useState({
     name: initialData.name || 'Usuario',
     role: initialData.role || 'Estudiante'
   });
 
+  // Cargar datos de la encuesta al montar el componente
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadEncuestaData = async () => {
+      if (!idEncuesta) return;
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Cargar encuesta completa y tipos de pregunta en paralelo
+        const [encuestaCompleta, tiposPreguntaData] = await Promise.all([
+          getEncuestaCompleta(idEncuesta),
+          getTiposPregunta()
+        ]);
+        
+        if (!isMounted) return;
+        
+        setEncuestaData(encuestaCompleta);
+        
+        // Debug: mostrar la estructura completa de la encuesta
+        console.log('Encuesta completa recibida:', encuestaCompleta);
+        
+        // Crear mapeo de tipos de pregunta
+        const tiposMap = {};
+        tiposPreguntaData.forEach(tipo => {
+          tiposMap[tipo.idTipo] = tipo.nombre;
+        });
+        setTiposPregunta(tiposMap);
+        
+        // Procesar secciones
+        const seccionesProcesadas = encuestaCompleta.secciones?.map(seccion => ({
+          id: seccion.idSeccion.toString(),
+          icon: 'section',
+          text: seccion.titulo,
+          status: 'pending',
+          descripcion: seccion.descripcion,
+          orden: seccion.orden
+        })).sort((a, b) => a.orden - b.orden) || [];
+        
+        setSections(seccionesProcesadas);
+        
+        // Procesar preguntas por sección
+        const preguntasPorSeccion = {};
+        encuestaCompleta.secciones?.forEach(seccion => {
+          const preguntasProcesadas = seccion.preguntas?.map(pregunta => {
+            // Debug: mostrar el tipo de pregunta que viene del API
+            console.log('Pregunta:', pregunta.textoPregunta, 'ID Tipo:', pregunta.idTipoPregunta);
+            
+            // Mapear el tipo de pregunta según la tabla proporcionada
+            let tipoPregunta = 'texto'; // default
+            switch (pregunta.idTipoPregunta) {
+              case 1: // Opción Múltiple
+                tipoPregunta = 'opcion-unica';
+                break;
+              case 2: // Checklist
+                tipoPregunta = 'checklist';
+                break;
+              case 3: // Escala Likert
+                tipoPregunta = 'likert';
+                break;
+              case 4: // Abierta
+                tipoPregunta = 'texto';
+                break;
+              case 5: // Verdadero/Falso
+                tipoPregunta = 'verdadero-falso';
+                break;
+              default:
+                tipoPregunta = 'texto';
+            }
+            
+                         console.log('Tipo mapeado:', tipoPregunta, 'Respuestas posibles:', pregunta.respuestasPosibles?.length || 0);
+             console.log('Respuestas posibles completas:', pregunta.respuestasPosibles);
+            
+            return {
+              id: pregunta.idPregunta,
+              text: pregunta.textoPregunta,
+              type: tipoPregunta,
+              answer: '',
+              answered: false,
+              ayuda: pregunta.ayuda,
+              puntaje: pregunta.puntaje,
+              orden: pregunta.orden,
+              respuestasPosibles: pregunta.respuestasPosibles || []
+            };
+          }).sort((a, b) => a.orden - b.orden) || [];
+          
+          preguntasPorSeccion[seccion.idSeccion.toString()] = preguntasProcesadas;
+        });
+        
+        setQuestionsData(preguntasPorSeccion);
+        
+        // Establecer primera sección como activa
+        if (seccionesProcesadas.length > 0) {
+          setCurrentSectionId(seccionesProcesadas[0].id);
+        }
+        
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error cargando encuesta:', err);
+          setError('Error al cargar la encuesta. Por favor, intenta de nuevo.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadEncuestaData();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [idEncuesta]);
+
   // Actualizar preguntas cuando cambia la sección
   useEffect(() => {
+    if (!currentSectionId) return;
     const sectionQuestions = questionsData[currentSectionId] || [];
     setQuestions(sectionQuestions);
     setCurrentQuestionIndex(0);
-  }, [currentSectionId]);
+  }, [currentSectionId, questionsData]);
 
   // Pregunta actual
   const currentQuestion = questions[currentQuestionIndex];
@@ -107,7 +181,7 @@ export const QuestionnairePage = ({
 
   const handleAnswerChange = (e) => {
     let newAnswer;
-    if (currentQuestion.type === 'checklist') {
+    if (currentQuestion.type === 'checklist' || currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'verdadero-falso') {
       newAnswer = e;
     } else if (currentQuestion.type === 'likert') {
       newAnswer = e;
@@ -129,7 +203,7 @@ export const QuestionnairePage = ({
   const handleNavigate = async (direction) => {
     if (direction === 'next') {
       // Validar respuesta actual
-      if (currentQuestion.type === 'checklist' && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
+      if ((currentQuestion.type === 'checklist' || currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'verdadero-falso') && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
         setError('Por favor, selecciona al menos una opción.');
         return;
       }
@@ -180,6 +254,7 @@ export const QuestionnairePage = ({
     
     try {
       const progressData = {
+        idEncuesta: idEncuesta,
         currentSection: currentSectionId,
         currentQuestion: currentQuestionIndex,
         answers: questionsData,
@@ -210,6 +285,7 @@ export const QuestionnairePage = ({
     const completedAnswers = allAnswers.filter(q => q.answered);
     
     const completionData = {
+      idEncuesta: idEncuesta,
       totalQuestions: allAnswers.length,
       completedQuestions: completedAnswers.length,
       completionRate: (completedAnswers.length / allAnswers.length) * 100,
@@ -242,26 +318,79 @@ export const QuestionnairePage = ({
   // Renderizado de pregunta según tipo
   const renderQuestion = () => {
     if (!currentQuestion) return null;
-    if (currentQuestion.type === 'checklist') {
-      return (
-        <ChecklistQuestion
-          question={currentQuestion.text}
-          options={currentQuestion.options}
-          selected={currentQuestion.answer}
-          onChange={handleAnswerChange}
-        />
-      );
+    
+    // Debug: mostrar información de la pregunta actual
+    console.log('Renderizando pregunta:', {
+      text: currentQuestion.text,
+      type: currentQuestion.type,
+      respuestasPosibles: currentQuestion.respuestasPosibles?.length || 0
+    });
+    
+    // Para preguntas con respuestas posibles (múltiple opción, checklist, etc.)
+    if (currentQuestion.respuestasPosibles && currentQuestion.respuestasPosibles.length > 0) {
+      const options = currentQuestion.respuestasPosibles.map(resp => resp.textoRespuesta);
+      
+      if (currentQuestion.type === 'opcion-unica') {
+        console.log('Renderizando opción única con:', options);
+        return (
+          <ChecklistQuestion
+            question={currentQuestion.text}
+            options={options}
+            selected={currentQuestion.answer}
+            onChange={handleAnswerChange}
+            singleSelect={true}
+          />
+        );
+      } else if (currentQuestion.type === 'checklist') {
+        console.log('Renderizando checklist con:', options);
+        return (
+          <ChecklistQuestion
+            question={currentQuestion.text}
+            options={options}
+            selected={currentQuestion.answer}
+            onChange={handleAnswerChange}
+            singleSelect={false}
+          />
+        );
+      } else if (currentQuestion.type === 'verdadero-falso') {
+        console.log('Renderizando verdadero/falso');
+        return (
+          <ChecklistQuestion
+            question={currentQuestion.text}
+            options={['Verdadero', 'Falso']}
+            selected={currentQuestion.answer}
+            onChange={handleAnswerChange}
+            singleSelect={true}
+          />
+        );
+      }
+    } else {
+      // Si no hay respuestas posibles pero el tipo es checklist o opción única, 
+      // intentar obtener las respuestas del API
+      if (currentQuestion.type === 'opcion-unica' || currentQuestion.type === 'checklist') {
+        console.log('No hay respuestas posibles para:', currentQuestion.type, 'Intentando obtener del API...');
+        // Por ahora, mostrar un mensaje de error
+        return (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">Error: No se pudieron cargar las opciones para esta pregunta.</p>
+            <p className="text-sm text-red-500 mt-1">Tipo: {currentQuestion.type}</p>
+          </div>
+        );
+      }
     }
+    
     if (currentQuestion.type === 'likert') {
+      console.log('Renderizando escala Likert');
       return (
         <LikertQuestion
           question={currentQuestion.text}
-          labels={currentQuestion.labels}
+          labels={['Muy en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Muy de acuerdo']}
           value={currentQuestion.answer}
           onChange={handleAnswerChange}
         />
       );
     }
+    
     // Pregunta tradicional (texto) o cualquier tipo
     return (
       <QuestionForm
@@ -274,13 +403,53 @@ export const QuestionnairePage = ({
         isLoading={isLoading}
         autoSave={true}
         type={currentQuestion.type}
-        options={currentQuestion.options}
-        labels={currentQuestion.labels}
+        options={currentQuestion.respuestasPosibles?.map(resp => resp.textoRespuesta) || []}
+        labels={['1', '2', '3', '4', '5']}
         onNext={() => handleNavigate('next')}
         onPrevious={() => handleNavigate('previous')}
       />
     );
   };
+
+  // Mostrar loading mientras se cargan los datos
+  if (isLoading && !encuestaData) {
+    return (
+      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando encuesta...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error si no se pudo cargar la encuesta
+  if (error && !encuestaData) {
+    return (
+      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay idEncuesta, mostrar mensaje
+  if (!idEncuesta) {
+    return (
+      <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No se especificó una encuesta</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`questionnaire-page ${className}`} {...props}>

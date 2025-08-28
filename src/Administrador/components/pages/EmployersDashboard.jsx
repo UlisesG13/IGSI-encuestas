@@ -3,8 +3,9 @@ import DashboardCards from "../molecule/DashboardCards";
 import EmployersList from "../organism/EmployersList";
 import React, { useEffect, useMemo, useState } from "react";
 import EmployersFormOrganism from "../organism/EmployersFormOrganims";
-import { getUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario } from "../../../Shared/services/authService";
-import { getDepartamentos } from "../../services/departamentosService";
+import { getUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario, getEstadisticasUsuarios } from "../../../Shared/services/authService";
+import { getDepartamentos, getEstadisticasDepartamentos } from "../../services/departamentosService";
+import { getEstadisticasEncuestas } from "../../services/encuestasService";
 
 const EmployersDashboard = () => {
 
@@ -15,6 +16,11 @@ const EmployersDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [departamentos, setDepartamentos] = useState([]);
+    const [estadisticas, setEstadisticas] = useState({
+      departamentos: 0,
+      encuestas: 0,
+      empleados: 0
+    });
 
     const fetchUsuarios = async () => {
       setLoading(true);
@@ -38,9 +44,28 @@ const EmployersDashboard = () => {
       }
     };
 
+    const fetchEstadisticas = async () => {
+      try {
+        const [statsDepartamentos, statsUsuarios, statsEncuestas] = await Promise.all([
+          getEstadisticasDepartamentos(),
+          getEstadisticasUsuarios(),
+          getEstadisticasEncuestas()
+        ]);
+        
+        setEstadisticas({
+          departamentos: statsDepartamentos.totalDepartamentos,
+          empleados: statsUsuarios.totalUsuarios,
+          encuestas: statsEncuestas.totalEncuestas
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+      }
+    };
+
     useEffect(() => {
       fetchUsuarios();
       fetchDepartamentos();
+      fetchEstadisticas();
     }, []);
 
     const getDepartamentoName = (idDepartamento) => {
@@ -53,6 +78,7 @@ const EmployersDashboard = () => {
         id: u.idUsuario,
         nombre: u.nombre,
         correo: u.correo,
+        rol: u.rol,
         idDepartamento: u.idDepartamento,
         nombreDepartamento: getDepartamentoName(u.idDepartamento),
       }));
@@ -67,6 +93,7 @@ const EmployersDashboard = () => {
         idDepartamento: Number(departamento) || 0,
       });
       await fetchUsuarios();
+      await fetchEstadisticas();
     };
 
     const handleEdit = async (idUsuario, { nombre, correo, contraseña, rol, departamento }) => {
@@ -78,11 +105,13 @@ const EmployersDashboard = () => {
         idDepartamento: Number(departamento) || 0,
       });
       await fetchUsuarios();
+      await fetchEstadisticas();
     };
 
     const handleDelete = async (idUsuario) => {
       await eliminarUsuario(idUsuario);
       await fetchUsuarios();
+      await fetchEstadisticas();
     };
 
 
@@ -100,9 +129,9 @@ const EmployersDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
         <div className="flex flex-col lg:flex-row gap-4 md:gap-6 order-2 lg:order-1">
           <DashboardCards 
-            numeroDepartamentos={30} 
-            numeroEncuestas={1000} 
-            numeroEmpleados={1500} 
+            numeroDepartamentos={estadisticas.departamentos} 
+            numeroEncuestas={estadisticas.encuestas} 
+            numeroEmpleados={estadisticas.empleados} 
           />
         </div>
         
@@ -113,6 +142,7 @@ const EmployersDashboard = () => {
             onDelete={handleDelete}
             loading={loading}
             error={error}
+            departamentos={departamentos}
           />
         </div>
         

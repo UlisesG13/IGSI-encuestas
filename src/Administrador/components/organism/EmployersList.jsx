@@ -1,6 +1,6 @@
 import EmployersCard from "../molecule/EmployersCard";
 
-const EmployersList = ({ listaDeEmpleados, onEdit, onDelete, loading, error }) => {
+const EmployersList = ({ listaDeEmpleados, onEdit, onDelete, loading, error, departamentos = [] }) => {
   const employersList = [
     {
       id: 1,
@@ -57,6 +57,7 @@ const EmployersList = ({ listaDeEmpleados, onEdit, onDelete, loading, error }) =
               idEmpleado={empleado.id}
               onEdit={onEdit}
               onDelete={onDelete}
+              departamentos={departamentos}
             />
           ))
         ) : (

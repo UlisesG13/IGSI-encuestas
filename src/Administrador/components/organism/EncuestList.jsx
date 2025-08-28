@@ -1,6 +1,6 @@
 import EncuestCard from "../molecule/EncuestCard";
 
-const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, loading, error }) => {
+const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, onCambiarEstado, loading, error, showDeleted }) => {
   // Lista de encuestas por defecto
   const encuestasDefault = [
     {
@@ -56,41 +56,41 @@ const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, loading, 
         <h2 className="text-xl font-bold text-gray-900">Encuestas</h2>
       </div>
 
-      {/* Header de columnas */}
-      <div className="flex items-center justify-between gap-6 p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="w-4 h-4"></div> {/* Espacio para checkbox */}
-          <div className="flex-1">
-            <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-              Nombre de encuesta
-            </div>
-          </div>
-        </div>
+             {/* Header de columnas */}
+       <div className="flex items-center justify-between gap-6 p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+         <div className="flex items-center gap-3 flex-1">
+           <div className="w-4 h-4"></div> {/* Espacio para checkbox */}
+           <div className="flex-1">
+             <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+               Nombre de encuesta
+             </div>
+           </div>
+         </div>
 
-        <div className="text-center min-w-24">
-          <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Fecha
-          </div>
-        </div>
+         <div className="text-center min-w-24">
+           <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+             Fecha
+           </div>
+         </div>
 
-        <div className="text-center min-w-24">
-          <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Número de respuestas
-          </div>
-        </div>
+         <div className="text-center min-w-24">
+           <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+             Número de respuestas
+           </div>
+         </div>
 
-        <div className="text-center min-w-20">
-          <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Estado
-          </div>
-        </div>
+         <div className="text-center min-w-20">
+           <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+             Estado
+           </div>
+         </div>
 
-        <div className="flex justify-end min-w-12">
-          <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Acciones
-          </div>
-        </div>
-      </div>
+         <div className="flex justify-end min-w-12">
+           <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+             Acciones
+           </div>
+         </div>
+       </div>
 
       {/* Lista de encuestas */}
       <div className="max-h-96 overflow-y-auto scrollbar-thin">
@@ -102,13 +102,15 @@ const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, loading, 
         )}
         {!loading && !error && encuestasToShow.length > 0 ? (
           encuestasToShow.map(encuesta => (
-            <EncuestCard 
-              key={encuesta.id} 
-              encuesta={encuesta}
-              onSoftDelete={onSoftDelete}
-              onRestaurar={onRestaurar}
-              onDelete={onDelete}
-            />
+                         <EncuestCard 
+               key={encuesta.id} 
+               encuesta={encuesta}
+               onSoftDelete={onSoftDelete}
+               onRestaurar={onRestaurar}
+               onDelete={onDelete}
+               onCambiarEstado={onCambiarEstado}
+               showDeleted={showDeleted}
+             />
           ))
         ) : !loading && !error ? (
           <div className="text-center py-12 text-gray-500 italic">

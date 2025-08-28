@@ -50,7 +50,7 @@ export async function updateDepartamento(idDepartamento, { nombre, descripcion }
 
 export async function softDeleteDepartamento(idDepartamento) {
   const response = await fetch(`${API_BASE}/${idDepartamento}/soft-delete`, {
-    method: "PUT",
+    method: "PATCH",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
   if (!response.ok) {
@@ -76,6 +76,21 @@ export async function deleteDepartamento(idDepartamento) {
     throw new Error("Error al eliminar el departamento");
   }
   return response.json().catch(() => ({}));
+}
+
+// Función para obtener estadísticas de departamentos
+export async function getEstadisticasDepartamentos() {
+  try {
+    const departamentos = await getDepartamentos();
+    return {
+      totalDepartamentos: departamentos.length,
+      departamentosActivos: departamentos.filter(d => !d.deleted).length,
+      departamentosEliminados: departamentos.filter(d => d.deleted).length
+    };
+  } catch (error) {
+    console.error("Error obteniendo estadísticas de departamentos:", error);
+    return { totalDepartamentos: 0, departamentosActivos: 0, departamentosEliminados: 0 };
+  }
 }
 
 

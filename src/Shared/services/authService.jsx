@@ -125,3 +125,28 @@ export async function eliminarUsuario(id) {
 	}
 	return await response.json();
 }
+
+// Función para obtener estadísticas de usuarios
+export async function getEstadisticasUsuarios() {
+	try {
+		const usuarios = await getUsuarios();
+		return {
+			totalUsuarios: usuarios.length,
+			usuariosActivos: usuarios.filter(u => !u.deleted).length,
+			usuariosEliminados: usuarios.filter(u => u.deleted).length,
+			adminGenerales: usuarios.filter(u => u.rol === 'AdminGeneral' && !u.deleted).length,
+			empleados: usuarios.filter(u => u.rol === 'Empleado' && !u.deleted).length,
+			adminsDepartamentales: usuarios.filter(u => u.rol === 'AdminDepartamental' && !u.deleted).length
+		};
+	} catch (error) {
+		console.error("Error obteniendo estadísticas de usuarios:", error);
+		return { 
+			totalUsuarios: 0, 
+			usuariosActivos: 0, 
+			usuariosEliminados: 0,
+			adminGenerales: 0,
+			empleados: 0,
+			adminsDepartamentales: 0
+		};
+	}
+}

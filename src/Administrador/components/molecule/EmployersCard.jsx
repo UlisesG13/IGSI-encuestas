@@ -7,8 +7,10 @@ const EmployersCard = ({
   idDepartamento, 
   nombreDepartamento,
   idEmpleado,
+  rol,
   onEdit,
   onDelete,
+  departamentos = []
 }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-soft p-6 max-w-4xl transition-shadow duration-200 hover:shadow-medium">
@@ -54,7 +56,13 @@ const EmployersCard = ({
           </p>
         </div>
         <div className="flex justify-end">
-        <EmployersMenuButton idEmpleado={idEmpleado} onEdit={onEdit} onDelete={onDelete} />
+        <EmployersMenuButton 
+          idEmpleado={idEmpleado} 
+          onEdit={onEdit} 
+          onDelete={onDelete} 
+          departamentos={departamentos}
+          empleadoData={{ nombre, correo, rol, idDepartamento }}
+        />
         </div>
       </div>
     </div>

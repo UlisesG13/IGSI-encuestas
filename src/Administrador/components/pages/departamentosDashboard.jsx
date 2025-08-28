@@ -9,7 +9,10 @@ import {
   updateDepartamento,
   softDeleteDepartamento,
   deleteDepartamento,
+  getEstadisticasDepartamentos,
 } from "../../services/departamentosService";
+import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
+import { getEstadisticasEncuestas } from "../../services/encuestasService";
 
 const DepartamentosDashboard = () => {
 
@@ -17,6 +20,11 @@ const DepartamentosDashboard = () => {
     const [departamentos, setDepartamentos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [estadisticas, setEstadisticas] = useState({
+      departamentos: 0,
+      encuestas: 0,
+      empleados: 0
+    });
 
     const fetchDepartamentos = async () => {
       setLoading(true);
@@ -31,8 +39,27 @@ const DepartamentosDashboard = () => {
       }
     };
 
+    const fetchEstadisticas = async () => {
+      try {
+        const [statsDepartamentos, statsUsuarios, statsEncuestas] = await Promise.all([
+          getEstadisticasDepartamentos(),
+          getEstadisticasUsuarios(),
+          getEstadisticasEncuestas()
+        ]);
+        
+        setEstadisticas({
+          departamentos: statsDepartamentos.totalDepartamentos,
+          empleados: statsUsuarios.totalUsuarios,
+          encuestas: statsEncuestas.totalEncuestas
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+      }
+    };
+
     useEffect(() => {
       fetchDepartamentos();
+      fetchEstadisticas();
     }, []);
 
     const listaDeDepartamentos = useMemo(() => {
@@ -47,17 +74,20 @@ const DepartamentosDashboard = () => {
     const handleCreate = async ({ nombre, descripcion }) => {
       await createDepartamento({ nombre, descripcion });
       await fetchDepartamentos();
+      await fetchEstadisticas();
     };
 
     const handleEdit = async (idDepartamento, { nombre, descripcion }) => {
       await updateDepartamento(idDepartamento, { nombre, descripcion });
       await fetchDepartamentos();
+      await fetchEstadisticas();
     };
 
     const handleSoftDelete = async (idDepartamento) => {
       try {
         await softDeleteDepartamento(idDepartamento);
         await fetchDepartamentos();
+        await fetchEstadisticas();
       } catch (error) {
         alert(error.message);
       }
@@ -67,6 +97,7 @@ const DepartamentosDashboard = () => {
       try {
         await deleteDepartamento(idDepartamento);
         await fetchDepartamentos();
+        await fetchEstadisticas();
       } catch (error) {
         alert(error.message);
       }
@@ -87,9 +118,9 @@ const DepartamentosDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6 order-2 lg:order-1">
             <DashboardCards 
-              numeroDepartamentos={30} 
-              numeroEncuestas={1000} 
-              numeroEmpleados={1500} 
+              numeroDepartamentos={estadisticas.departamentos} 
+              numeroEncuestas={estadisticas.encuestas} 
+              numeroEmpleados={estadisticas.empleados} 
             />
           </div>
           

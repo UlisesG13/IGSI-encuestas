@@ -2,30 +2,60 @@ import React, { useEffect, useMemo, useState } from "react";
 import Header from "../organism/Header"; 
 import DashboardCards from "../molecule/DashboardCards";
 import EncuestList from "../organism/EncuestList";
-import { getEncuestas, softDeleteEncuesta, restaurarEncuesta, deleteEncuesta } from "../../services/encuestasService";
+import { getEncuestas, softDeleteEncuesta, restaurarEncuesta, deleteEncuesta, cambiarEstadoEncuesta, getEstadisticasEncuestas } from "../../services/encuestasService";
+import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
+import { getEstadisticasDepartamentos } from "../../services/departamentosService";
 
 const EncuestDashboards = () => {
     const titulo = "Dashboard de Encuestas";
     const [encuestas, setEncuestas] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showDeleted, setShowDeleted] = useState(false);
+    const [estadisticas, setEstadisticas] = useState({
+      departamentos: 0,
+      encuestas: 0,
+      empleados: 0
+    });
 
     const fetchEncuestas = async () => {
       setLoading(true);
       setError("");
       try {
-        const data = await getEncuestas();
+        console.log(`Fetching encuestas, showDeleted: ${showDeleted}`);
+        const data = await getEncuestas({ showDeleted });
+        console.log(`Dashboard received ${data.length} encuestas`);
         setEncuestas(Array.isArray(data) ? data : []);
       } catch (e) {
+        console.error("Error fetching encuestas:", e);
         setError("No se pudieron cargar las encuestas");
       } finally {
         setLoading(false);
       }
     };
 
+    const fetchEstadisticas = async () => {
+      try {
+        const [statsDepartamentos, statsUsuarios, statsEncuestas] = await Promise.all([
+          getEstadisticasDepartamentos(),
+          getEstadisticasUsuarios(),
+          getEstadisticasEncuestas()
+        ]);
+        
+        setEstadisticas({
+          departamentos: statsDepartamentos.totalDepartamentos,
+          empleados: statsUsuarios.totalUsuarios,
+          encuestas: statsEncuestas.totalEncuestas
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+      }
+    };
+
     useEffect(() => {
       fetchEncuestas();
-    }, []);
+      fetchEstadisticas();
+    }, [showDeleted]);
 
     const listaDeEncuestas = useMemo(() => {
       return encuestas.map(e => ({
@@ -34,13 +64,26 @@ const EncuestDashboards = () => {
         fecha: `${e.fechaInicio} - ${e.fechaFin}`,
         respuestas: e.numeroRespuestas || 0,
         estado: e.estado,
+        deleted: e.deleted,
       }));
     }, [encuestas]);
 
     const handleSoftDelete = async (idEncuesta) => {
       try {
-        await softDeleteEncuesta(idEncuesta);
+        const result = await softDeleteEncuesta(idEncuesta);
+        alert(result.message || "Encuesta deshabilitada y eliminada exitosamente");
         await fetchEncuestas();
+        await fetchEstadisticas();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
+      try {
+        await cambiarEstadoEncuesta(idEncuesta, nuevoEstado);
+        await fetchEncuestas();
+        await fetchEstadisticas();
       } catch (error) {
         alert(error.message);
       }
@@ -48,8 +91,10 @@ const EncuestDashboards = () => {
 
     const handleRestaurar = async (idEncuesta) => {
       try {
-        await restaurarEncuesta(idEncuesta);
+        const result = await restaurarEncuesta(idEncuesta);
+        alert(result.message || "Encuesta restaurada y mantenida deshabilitada");
         await fetchEncuestas();
+        await fetchEstadisticas();
       } catch (error) {
         alert(error.message);
       }
@@ -61,6 +106,7 @@ const EncuestDashboards = () => {
         if (!confirmDelete) return;
         await deleteEncuesta(idEncuesta);
         await fetchEncuestas();
+        await fetchEstadisticas();
       } catch (error) {
         alert(error.message);
       }
@@ -81,21 +127,40 @@ const EncuestDashboards = () => {
                     {/* Sidebar izquierdo con tarjetas de estadísticas */}
                     <div className="flex flex-col gap-4 md:gap-6 order-2 lg:order-1">
                         <DashboardCards 
-                          numeroDepartamentos={24} 
-                          numeroEncuestas={1000} 
-                          numeroEmpleados={1500} 
+                          numeroDepartamentos={estadisticas.departamentos} 
+                          numeroEncuestas={estadisticas.encuestas} 
+                          numeroEmpleados={estadisticas.empleados} 
                         />
                     </div>
                     
                     {/* Contenido principal con lista de encuestas */}
                     <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
+                                                 <div className="flex justify-between items-center mb-4">
+                           <div className="flex items-center gap-4">
+                             <span className="text-sm text-gray-600">
+                               {showDeleted ? 'Papelera' : 'Encuestas Activas'}
+                             </span>
+                              <button
+                                onClick={() => setShowDeleted(!showDeleted)}
+                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                  showDeleted 
+                                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                              >
+                                {showDeleted ? 'Ver Activas' : 'Ver Papelera'}
+                              </button>
+                           </div>
+                         </div>
                         <EncuestList 
                           encuestas={listaDeEncuestas}
                           onSoftDelete={handleSoftDelete}
                           onRestaurar={handleRestaurar}
                           onDelete={handleDelete}
+                          onCambiarEstado={handleCambiarEstado}
                           loading={loading}
                           error={error}
+                          showDeleted={showDeleted}
                         />
                     </div>
                 </div>

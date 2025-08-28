@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { QuestionCard } from '../molecule/QuestionCard.jsx';
 import { NavigationButtons } from '../molecule/NavigationButtons.jsx';
 import { ProgressIndicator } from '../molecule/ProgressIndicator.jsx';
+import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
+import LikertQuestion from '../molecule/LikertQuestion.jsx';
 
 export const QuestionForm = ({ 
   question,
@@ -37,7 +39,6 @@ export const QuestionForm = ({
     }
     // Checklist
     if (props.type === 'checklist' && props.options) {
-      const ChecklistQuestion = require('../molecule/ChecklistQuestion.jsx').default;
       return (
         <div>
           <ChecklistQuestion
@@ -63,7 +64,6 @@ export const QuestionForm = ({
     }
     // Likert
     if (props.type === 'likert' && props.labels) {
-      const LikertQuestion = require('../molecule/LikertQuestion.jsx').default;
       return (
         <div>
           <LikertQuestion

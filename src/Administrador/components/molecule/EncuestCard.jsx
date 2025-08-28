@@ -1,7 +1,7 @@
 import EncuestMenuButton from "../atom/EncuestMenuButton";
 import React, { useState } from "react";
 
-const EncuestCard = ({ encuesta, onSoftDelete, onRestaurar, onDelete }) => {
+const EncuestCard = ({ encuesta, onSoftDelete, onRestaurar, onDelete, onCambiarEstado, showDeleted }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   const getEstadoColor = (estado) => {
@@ -42,22 +42,25 @@ const EncuestCard = ({ encuesta, onSoftDelete, onRestaurar, onDelete }) => {
         </div>
       </div>
 
-      {/* Estado */}
-      <div className="text-rigth min-w-20">
-        <span className={`  px-2 py-1 text-xs font-medium ${getEstadoColor(encuesta.estado)}`}>
-          {encuesta.estado.charAt(0).toUpperCase() + encuesta.estado.slice(1)}
-        </span>
-      </div>
+                    {/* Estado */}
+       <div className="text-center min-w-30">
+         <span className={`px-2 py-1 text-xs  font-medium rounded-full ${getEstadoColor(encuesta.estado)}`}>
+           {encuesta.estado.charAt(0).toUpperCase() + encuesta.estado.slice(1)}
+         </span>
+       </div>
 
-      {/* Botón menú */}
-      <div className="flex justify-end min-w-12">
-        <EncuestMenuButton 
-          idEncuesta={encuesta.id}
-          onSoftDelete={onSoftDelete}
-          onRestaurar={onRestaurar}
-          onDelete={onDelete}
-        />
-      </div>
+      
+        <div className="flex justify-end min-w-12">
+         <EncuestMenuButton 
+           idEncuesta={encuesta.id}
+           estado={encuesta.estado}
+           onSoftDelete={onSoftDelete}
+           onRestaurar={onRestaurar}
+           onDelete={onDelete}
+           onCambiarEstado={onCambiarEstado}
+           showDeleted={showDeleted}
+         />
+       </div>
     </div>
   );
 };
