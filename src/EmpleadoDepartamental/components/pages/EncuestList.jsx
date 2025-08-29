@@ -8,7 +8,7 @@ import {
   restaurarEncuesta,
   deleteEncuesta,
   updateEncuesta
-} from "../../Shared/services/encuestasService";
+} from "../../../Shared/services/encuestasService";
 
 const TABS = [
   { key: "activas", label: "Encuestas activas" },
