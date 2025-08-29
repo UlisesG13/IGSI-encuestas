@@ -15,7 +15,7 @@ function authHeaders(extra = {}) {
 // ==========================
 
 export async function getEncuestas() {
-  const response = await fetch(`${API_BASE}/encuestas`, {
+  const response = await fetch(`${API_BASE}/encuestas/master`, {
     method: "GET",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });

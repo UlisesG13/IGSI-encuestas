@@ -48,14 +48,15 @@ const DepartamentosDashboard = () => {
       const [statsDepartamentos, statsUsuarios, encuestas] = await Promise.all([
         getEstadisticasDepartamentos(),
         getEstadisticasUsuarios(),
-        getTodasLasEncuestas() // usamos las encuestas del nuevo service
+        getTodasLasEncuestas()
       ]);
 
-      setEstadisticas({
-        departamentos: statsDepartamentos.totalDepartamentos,
-        empleados: statsUsuarios.totalUsuarios,
+      setEstadisticas(prev => ({
+        ...prev,
+        departamentos: statsDepartamentos?.totalDepartamentos || 0,
+        empleados: statsUsuarios?.totalUsuarios || 0,
         encuestas: Array.isArray(encuestas) ? encuestas.length : 0
-      });
+      }));
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
     }
@@ -129,7 +130,7 @@ const DepartamentosDashboard = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
           {/* Tarjetas de estadísticas */}
-          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 order-2 lg:order-1">
+          <div className="flex flex-col gap-4 md:gap-6 order-2 lg:order-1">
             <DashboardCards 
               numeroDepartamentos={estadisticas.departamentos} 
               numeroEncuestas={estadisticas.encuestas} 

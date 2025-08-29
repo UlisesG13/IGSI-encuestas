@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import HeaderLogo from "../molecule/HeaderLogo";
 import CloseSesionButton from "../atom/closeSesionButton";
-import PerfilButton from "../atom/PerfilButton";
+
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,9 +36,7 @@ const Header = () => {
         <HeaderLogo />
       </div>
 
-      <div className="flex items-center gap-4">
-        <PerfilButton />
-      </div>
+
 
       {/* Botón hamburguesa solo en pantallas pequeñas */}
       <button
@@ -51,7 +49,6 @@ const Header = () => {
       {/* Menú desplegable */}
       {menuOpen && (
         <nav ref={menuRef} className="absolute top-15 right-2.5 bg-white rounded-lg shadow-lg p-4 flex flex-col text-left gap-4 min-w-36 z-200 md:hidden">
-          <button className="dropdown__item">Perfil de usuario</button>
           <button className="dropdown__item">Cerrar sesión</button>
         </nav>
       )}

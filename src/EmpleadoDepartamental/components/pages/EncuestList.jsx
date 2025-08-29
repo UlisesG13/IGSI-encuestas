@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import SidebarActions from "../molecule/SidebarActions";
 import SurveyTable from "../organism/SurveyTable";
 import {
-  getEncuestas,
+  getTodasLasEncuestas,
+  getEncuestasEliminadas,
+  updateEncuesta,
   softDeleteEncuesta,
   restaurarEncuesta,
-  deleteEncuesta,
-  updateEncuesta
-} from "../../../Shared/services/encuestasService";
+  deleteEncuesta
+} from "../../services/encuestasService";
 
 const TABS = [
   { key: "activas", label: "Encuestas activas" },
@@ -25,59 +26,59 @@ const EncuestList = () => {
   // Cargar encuestas reales
   useEffect(() => {
     fetchEncuestas();
-  }, []);
+  }, [tab]);
 
   const fetchEncuestas = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getEncuestas();
-      setEncuestas(data);
+      let data;
+      if (tab === "papelera") {
+        data = await getEncuestasEliminadas();
+      } else {
+        data = await getTodasLasEncuestas();
+      }
+      setEncuestas(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Error al cargar encuestas");
+      setEncuestas([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrar encuestas según tab
-  const encuestasActivas = encuestas.filter(e => !e.deleted);
-  const encuestasEliminadas = encuestas.filter(e => e.deleted);
 
   // Acciones
   const handleSoftDelete = async (idEncuesta) => {
+    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+    if (!encuesta || encuesta.deleted) return;
+    // Deshabilitar antes de eliminar
+    await updateEncuesta(idEncuesta, { ...encuesta, estado: "deshabilitada" });
     await softDeleteEncuesta(idEncuesta);
-    fetchEncuestas();
+    await fetchEncuestas();
     setSelectedSurvey(null);
   };
   const handleRestaurar = async (idEncuesta) => {
+    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+    if (!encuesta || !encuesta.deleted) return;
     await restaurarEncuesta(idEncuesta);
-    fetchEncuestas();
+    await updateEncuesta(idEncuesta, { ...encuesta, estado: "habilitada" });
+    await fetchEncuestas();
     setSelectedSurvey(null);
   };
   const handleDelete = async (idEncuesta) => {
     await deleteEncuesta(idEncuesta);
-    fetchEncuestas();
+    await fetchEncuestas();
     setSelectedSurvey(null);
   };
-  const handleDeshabilitar = async (idEncuesta) => {
+  const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
     const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta) return;
-    await updateEncuesta(idEncuesta, {
-      ...encuesta,
-      estado: "inactiva"
-    });
-    fetchEncuestas();
-    setSelectedSurvey(null);
-  };
-  const handleHabilitar = async (idEncuesta) => {
-    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta) return;
-    await updateEncuesta(idEncuesta, {
-      ...encuesta,
-      estado: "activa"
-    });
-    fetchEncuestas();
+    if (!encuesta || encuesta.deleted) return;
+    let estadoBackend = nuevoEstado;
+    if (nuevoEstado === "activa") estadoBackend = "habilitada";
+    if (nuevoEstado === "inactiva") estadoBackend = "deshabilitada";
+    await updateEncuesta(idEncuesta, { ...encuesta, estado: estadoBackend });
+    await fetchEncuestas();
     setSelectedSurvey(null);
   };
 
@@ -86,8 +87,10 @@ const EncuestList = () => {
     setSelectedSurvey(selectedSurvey === index ? null : index);
   };
 
+
   // Encuestas a mostrar según tab
-  const surveys = tab === "activas" ? encuestasActivas : encuestasEliminadas;
+  const surveys = encuestas;
+
 
   // Acciones para Sidebar
   const sidebarActionsProps = {
@@ -95,10 +98,9 @@ const EncuestList = () => {
     tab,
     surveys,
     onSoftDelete: (idx) => handleSoftDelete(surveys[idx].idEncuesta),
-    onDeshabilitar: (idx) => handleDeshabilitar(surveys[idx].idEncuesta),
-    onHabilitar: (idx) => handleHabilitar(surveys[idx].idEncuesta),
     onRestaurar: (idx) => handleRestaurar(surveys[idx].idEncuesta),
-    onDelete: (idx) => handleDelete(surveys[idx].idEncuesta)
+    onDelete: (idx) => handleDelete(surveys[idx].idEncuesta),
+    onCambiarEstado: (idx, nuevoEstado) => handleCambiarEstado(surveys[idx].idEncuesta, nuevoEstado)
   };
 
   return (

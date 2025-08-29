@@ -63,11 +63,12 @@ const EmployersDashboard = () => {
         getTodasLasEncuestas()
       ]);
 
-      setEstadisticas({
-        departamentos: statsDepartamentos.totalDepartamentos,
-        empleados: statsUsuarios.totalUsuarios,
+      setEstadisticas(prev => ({
+        ...prev,
+        departamentos: statsDepartamentos?.totalDepartamentos || 0,
+        empleados: statsUsuarios?.totalUsuarios || 0,
         encuestas: Array.isArray(todasLasEncuestas) ? todasLasEncuestas.length : 0
-      });
+      }));
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
     }
@@ -129,9 +130,28 @@ const EmployersDashboard = () => {
   };
 
   const handleDelete = async (idUsuario) => {
-    await eliminarUsuario(idUsuario);
-    setUsuarios((prev) => prev.filter((u) => u.idUsuario !== idUsuario));
-    await fetchEstadisticas();
+    const prevLength = usuarios.length;
+    try {
+      await eliminarUsuario(idUsuario).catch(e => {
+        // Si el error es de JSON vacío, lo ignoramos
+        if (e instanceof SyntaxError && e.message.includes('JSON')) {
+          // Ignorar error de JSON vacío
+          return;
+        }
+        throw e;
+      });
+      await fetchUsuarios();
+      await fetchEstadisticas();
+      setTimeout(() => {
+        if (usuarios.length - 1 === prevLength - 1 || usuarios.length < prevLength) {
+          alert("Usuario eliminado correctamente.");
+        } else {
+          alert("No se pudo confirmar la eliminación del usuario.");
+        }
+      }, 500);
+    } catch (e) {
+      alert("Error al eliminar usuario: " + (e?.message || e));
+    }
   };
 
   return (
@@ -147,7 +167,7 @@ const EmployersDashboard = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
           {/* Tarjetas de estadísticas */}
-          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 order-2 lg:order-1">
+          <div className="flex flex-col gap-4 md:gap-6 order-2 lg:order-1">
             <DashboardCards 
               numeroDepartamentos={estadisticas.departamentos} 
               numeroEncuestas={estadisticas.encuestas} 

@@ -2,7 +2,7 @@ import SidebarActionButton from "../atom/SidebarActionButton";
 import { Plus, Trash2, Edit, FileText, XCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onDeshabilitar, onHabilitar, onRestaurar, onDelete }) => {
+const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaurar, onDelete, onCambiarEstado }) => {
   const navigate = useNavigate();
   const hasSelection = selectedSurvey !== null && surveys[selectedSurvey];
   const isDeshabilitada = hasSelection && (surveys[selectedSurvey].estado === 'deshabilitada');
@@ -23,16 +23,15 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onDeshabil
       subtitle: "(No visible para alumnos)",
       color: "orange",
       disabled: !hasSelection || isDeshabilitada,
-      onClick: () => hasSelection && onDeshabilitar(selectedSurvey)
+      onClick: () => hasSelection && onCambiarEstado(selectedSurvey, 'inactiva')
     },
-    // Botón para habilitar encuesta si está deshabilitada
     {
       icon: RefreshCcw,
       title: "Habilitar encuesta",
       subtitle: "(Volver a activa)",
       color: "green",
       disabled: !hasSelection || !isDeshabilitada,
-      onClick: () => hasSelection && isDeshabilitada && onHabilitar(selectedSurvey)
+      onClick: () => hasSelection && isDeshabilitada && onCambiarEstado(selectedSurvey, 'activa')
     },
     {
       icon: Trash2,
