@@ -12,9 +12,92 @@ import {
   updateEncuesta
 } from "../../services/encuestasService";
 import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
+import QuestionChartModal from "../molecule/QuestionChartModal";
 import { getEstadisticasDepartamentos } from "../../services/departamentosService";
 
 const EncuestDashboards = () => {
+  // Encuesta de ejemplo para mostrar en el modal
+  const encuestaEjemplo = {
+    idEncuesta: 1,
+    titulo: "prueba",
+    descripcion: "es una prueba de una encuesta",
+    idDepartamento: 1,
+    fechaInicio: "2025-08-01",
+    fechaFin: "2025-08-02",
+    estado: "deshabilitada",
+    deleted: false,
+    secciones: [
+      {
+        idSeccion: 1,
+        titulo: "Infraestructura demo",
+        descripcion: "Opinión sobre instalaciones y equipamiento.",
+        orden: 1,
+        preguntas: [
+          {
+            idPregunta: 1,
+            textoPregunta: "pregunta",
+            idTipoPregunta: 1,
+            orden: 1,
+            ayuda: "esta es una prueba de pregunta no hace falta contestar",
+            puntaje: 0,
+            respuestas: [
+              {
+                idRespuestaPosible: 1,
+                idPregunta: 1,
+                textoRespuesta: "opcion 1",
+                puntaje: 0,
+                esCorrecta: false
+              },
+              {
+                idRespuestaPosible: 2,
+                idPregunta: 1,
+                textoRespuesta: "opcion numero 2",
+                puntaje: 0,
+                esCorrecta: true
+              }
+            ]
+          },
+          {
+            idPregunta: 2,
+            textoPregunta: "pregunta2",
+            idTipoPregunta: 1,
+            orden: 1,
+            ayuda: "esta es otra prueba",
+            puntaje: 0,
+            respuestas: [
+              {
+                idRespuestaPosible: 3,
+                idPregunta: 2,
+                textoRespuesta: "opcion 1",
+                puntaje: 0,
+                esCorrecta: true
+              },
+              {
+                idRespuestaPosible: 4,
+                idPregunta: 2,
+                textoRespuesta: "opcion 2",
+                puntaje: 0,
+                esCorrecta: false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  // Estado para mostrar los modales temporales
+  const [showPreguntasModal, setShowPreguntasModal] = useState(false);
+  const [showChartModal, setShowChartModal] = useState(false);
+  // Ejemplo de pregunta para el modal de gráfica
+  const ejemploPregunta = {
+    idPregunta: 1,
+    textoPregunta: "¿Qué opción prefieres?",
+    idTipoPregunta: 1,
+    respuestas: [
+      { idRespuestaPosible: 1, textoRespuesta: "Opción 1" },
+      { idRespuestaPosible: 2, textoRespuesta: "Opción 2" }
+    ]
+  };
   const titulo = "Dashboard de Encuestas";
   const [encuestas, setEncuestas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -158,6 +241,68 @@ const EncuestDashboards = () => {
             Bienvenido al dashboard de encuestas. Aquí podrás gestionar todas las encuestas de la aplicación.
           </p>
         </div>
+
+        {/* Botones temporales para mostrar los modales */}
+        <div className="flex gap-4 mb-6">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded shadow"
+            onClick={() => setShowPreguntasModal(true)}
+          >
+            Ver Modal de Preguntas
+          </button>
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded shadow"
+            onClick={() => setShowChartModal(true)}
+          >
+            Ver Modal de Gráfica
+          </button>
+        </div>
+
+        {/* Modales temporales */}
+        {showPreguntasModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-xl relative">
+              <button
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+                onClick={() => setShowPreguntasModal(false)}
+              >
+                ×
+              </button>
+              <h2 className="text-xl font-bold mb-4 text-orange-600">{encuestaEjemplo.titulo}</h2>
+              <p className="text-gray-600 mb-2">{encuestaEjemplo.descripcion}</p>
+              <div className="flex flex-col gap-4 mt-2">
+                {encuestaEjemplo.secciones.map(sec => (
+                  <div key={sec.idSeccion} className="border rounded-lg p-3 bg-gray-50">
+                    <h3 className="font-semibold text-orange-500 mb-1">{sec.titulo}</h3>
+                    <p className="text-sm text-gray-500 mb-2">{sec.descripcion}</p>
+                    <ul className="list-disc ml-5">
+                      {sec.preguntas.map(preg => (
+                        <li key={preg.idPregunta} className="mb-2">
+                          <span className="font-medium text-gray-800">{preg.textoPregunta}</span>
+                          <span className="text-xs text-gray-500 ml-2">({preg.ayuda})</span>
+                          <button
+                            className="ml-4 px-2 py-1 bg-green-500 text-white rounded text-xs"
+                            onClick={() => {
+                              setShowPreguntasModal(false);
+                              setShowChartModal(true);
+                            }}
+                          >Ver gráfica</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {showChartModal && (
+          <QuestionChartModal
+            open={showChartModal}
+            onClose={() => setShowChartModal(false)}
+            pregunta={ejemploPregunta}
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 md:gap-8 items-start max-w-full">
           {/* Sidebar izquierdo con tarjetas de estadísticas */}
