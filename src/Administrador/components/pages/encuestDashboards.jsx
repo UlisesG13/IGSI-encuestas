@@ -177,7 +177,6 @@ const EncuestDashboards = () => {
     try {
       // Primero hacer soft-delete
       await softDeleteEncuesta(idEncuesta);
-      
       // Luego cambiar el estado a inactiva
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (encuesta) {
@@ -186,9 +185,9 @@ const EncuestDashboards = () => {
           estado: "inactiva"
         });
       }
-      
       await fetchEncuestas();
       await fetchEstadisticas();
+      window.showAlert('Encuesta movida a la papelera correctamente', 'success');
     } catch (error) {
       window.showAlert(error.message, "error");
     }
@@ -198,13 +197,13 @@ const EncuestDashboards = () => {
     try {
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (!encuesta) return;
-      
       await updateEncuesta(idEncuesta, {
         ...encuesta,
         estado: nuevoEstado
       });
       await fetchEncuestas();
       await fetchEstadisticas();
+      window.showAlert('Estado de la encuesta actualizado correctamente', 'success');
     } catch (error) {
       window.showAlert(error.message, "error");
     }
@@ -215,6 +214,7 @@ const EncuestDashboards = () => {
       await restaurarEncuesta(idEncuesta);
       await fetchEncuestas();
       await fetchEstadisticas();
+      window.showAlert('Encuesta restaurada correctamente', 'success');
     } catch (error) {
       window.showAlert(error.message, "error");
     }
@@ -227,6 +227,7 @@ const EncuestDashboards = () => {
       await deleteEncuesta(idEncuesta);
       await fetchEncuestas();
       await fetchEstadisticas();
+      window.showAlert('Encuesta eliminada permanentemente', 'success');
     } catch (error) {
       window.showAlert(error.message, "error");
     }
