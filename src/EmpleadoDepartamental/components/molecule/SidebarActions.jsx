@@ -1,11 +1,14 @@
 import SidebarActionButton from "../atom/SidebarActionButton";
-import { Plus, Trash2, Edit, FileText } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, XCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const SidebarActions = ({ selectedSurvey }) => {
+const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onDeshabilitar, onRestaurar, onDelete }) => {
   const navigate = useNavigate();
-  const hasSelection = selectedSurvey !== null;
-  const actions = [
+  const hasSelection = selectedSurvey !== null && surveys[selectedSurvey];
+  const isDeshabilitada = hasSelection && (surveys[selectedSurvey].estado === 'deshabilitada');
+
+  // Acciones para la pestaña principal
+  const mainActions = [
     {
       icon: Plus,
       title: "Nueva encuesta",
@@ -15,20 +18,28 @@ const SidebarActions = ({ selectedSurvey }) => {
       onClick: () => navigate('/crearEncuestas')
     },
     {
+      icon: XCircle,
+      title: "Deshabilitar encuesta",
+      subtitle: "(No visible para alumnos)",
+      color: "orange",
+      disabled: !hasSelection || isDeshabilitada,
+      onClick: () => hasSelection && onDeshabilitar(selectedSurvey)
+    },
+    {
       icon: Trash2,
-      title: "Eliminar Encuesta",
-      subtitle: "(Todas encuestas habilitadas)",
+      title: "Eliminar (Papelera)",
+      subtitle: "(Soft delete)",
       color: "red",
       disabled: !hasSelection,
-      onClick: () => hasSelection && console.log("Eliminar encuesta", selectedSurvey)
+      onClick: () => hasSelection && onSoftDelete(selectedSurvey)
     },
     {
       icon: Edit,
       title: "Editar Encuesta",
-      subtitle: "(Recargar encuestas existente)",
+      subtitle: "(Recargar encuesta existente)",
       color: "green",
       disabled: !hasSelection,
-      onClick: () => hasSelection && console.log("Editar encuesta", selectedSurvey)
+      onClick: () => hasSelection && navigate(`/editarEncuesta/${surveys[selectedSurvey].idEncuesta}`)
     },
     {
       icon: FileText,
@@ -36,9 +47,32 @@ const SidebarActions = ({ selectedSurvey }) => {
       subtitle: "(Buscar tablas y gráficas)",
       color: "orange",
       disabled: !hasSelection,
-      onClick: () => hasSelection && console.log("Generar reporte", selectedSurvey)
+      onClick: () => hasSelection && console.log("Generar reporte", surveys[selectedSurvey].idEncuesta)
     }
   ];
+
+  // Acciones para la papelera
+  const trashActions = [
+    {
+      icon: RefreshCcw,
+      title: "Restaurar encuesta",
+      subtitle: "(Volver a lista principal)",
+      color: "blue",
+      disabled: !hasSelection,
+      onClick: () => hasSelection && onRestaurar(selectedSurvey)
+    },
+    {
+      icon: Trash2,
+      title: "Eliminar permanentemente",
+      subtitle: "(Borrado definitivo)",
+      color: "red",
+      disabled: !hasSelection,
+      onClick: () => hasSelection && onDelete(selectedSurvey)
+    }
+  ];
+
+  const actions = tab === 'activas' ? mainActions : trashActions;
+
   return (
     <div className="w-full md:w-64 space-y-4">
       {actions.map((action, index) => (
@@ -56,4 +90,4 @@ const SidebarActions = ({ selectedSurvey }) => {
   );
 }
 
-  export default SidebarActions;
+export default SidebarActions;
