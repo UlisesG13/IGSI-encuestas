@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuestionnaireTemplate } from '../template/QuestionnaireTemplate';
+import AlertContainer from '../molecule/AlertContainer.jsx';
 import Header from '../organism/Header.jsx';
 import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
 import LikertQuestion from '../molecule/LikertQuestion.jsx';
@@ -209,18 +210,22 @@ export const QuestionnairePage = ({
       // Validar respuesta actual si es requerida
       if (currentQuestion.requerida) {
         if (currentQuestion.type === 'checklist' && (!currentQuestion?.answer || currentQuestion.answer.length === 0)) {
+          window.showAlert('Por favor, selecciona al menos una opción.', 'error');
           setError('Por favor, selecciona al menos una opción.');
           return;
         }
         if (currentQuestion.type === 'likert' && !currentQuestion?.answer) {
+          window.showAlert('Por favor, selecciona una opción.', 'error');
           setError('Por favor, selecciona una opción.');
           return;
         }
         if (currentQuestion.type === 'radio' && !currentQuestion?.answer) {
+          window.showAlert('Por favor, selecciona una opción.', 'error');
           setError('Por favor, selecciona una opción.');
           return;
         }
         if ((currentQuestion.type === 'text' || currentQuestion.type === 'textarea' || currentQuestion.type === 'number' || currentQuestion.type === 'date' || currentQuestion.type === 'tel' || currentQuestion.type === 'email') && !currentQuestion?.answer?.trim()) {
+          window.showAlert('Por favor, completa esta pregunta antes de continuar.', 'error');
           setError('Por favor, completa esta pregunta antes de continuar.');
           return;
         }
@@ -452,6 +457,7 @@ export const QuestionnairePage = ({
 
   return (
     <div className={`questionnaire-page ${className}`} {...props}>
+      <AlertContainer />
       <Header />
       <QuestionnaireTemplate
         userInfo={userInfo}
