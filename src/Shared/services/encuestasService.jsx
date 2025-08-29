@@ -53,7 +53,7 @@ export async function createEncuesta(payload) {
 
 export async function updateEncuesta(idEncuesta, payload) {
   const response = await fetch(`${API_BASE}/encuestas/${idEncuesta}`, {
-    method: "PUT",
+    method: "PATCH",
     headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
