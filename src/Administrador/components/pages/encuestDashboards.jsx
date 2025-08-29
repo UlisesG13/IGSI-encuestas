@@ -174,18 +174,20 @@ const EncuestDashboards = () => {
   // 🔹 Handlers CRUD y de estado
   const handleSoftDelete = async (idEncuesta) => {
     try {
+      // Obtener la encuesta antes del soft-delete
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) return;
+      
       // Primero hacer soft-delete
       await softDeleteEncuesta(idEncuesta);
       
-      // Luego cambiar el estado a inactiva
-      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-      if (encuesta) {
-        await updateEncuesta(idEncuesta, {
-          ...encuesta,
-          estado: "inactiva"
-        });
-      }
+      // Luego cambiar el estado a inactiva (usando los datos que teníamos)
+      await updateEncuesta(idEncuesta, {
+        ...encuesta,
+        estado: "inactiva"
+      });
       
+      // Finalmente recargar la lista
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
