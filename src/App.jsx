@@ -23,7 +23,6 @@ function App() {
       {/* alumnos routes */}
       <Route path="dashboardAlumnos" element={<SurveyAlumn />} />
       <Route path="formulariosAlumnos" element={<QuestionnairePage />} />
-      <Route path="formulariosAlumnos/:idEncuesta" element={<QuestionnairePage />} />
 
       {/* EmpleadoDepartamental routes */}
       <Route path="crearEncuestas" element={<CreateSurveyPage />} />
@@ -38,3 +37,4 @@ function App() {
 }
 
 export default App;
+//manu estuvo aki
