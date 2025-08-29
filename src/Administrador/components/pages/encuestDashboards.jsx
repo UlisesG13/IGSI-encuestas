@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";     
 import Header from "../organism/Header"; 
+import AlertContainer from "../../../Shared/components/molecule/AlertContainer";
 import DashboardCards from "../molecule/DashboardCards";
 import EncuestList from "../organism/EncuestList";
 import { 
@@ -189,7 +190,7 @@ const EncuestDashboards = () => {
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
@@ -205,7 +206,7 @@ const EncuestDashboards = () => {
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
@@ -215,7 +216,7 @@ const EncuestDashboards = () => {
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
@@ -227,12 +228,13 @@ const EncuestDashboards = () => {
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <AlertContainer />
       <Header />
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">
