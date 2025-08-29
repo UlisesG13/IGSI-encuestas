@@ -7,7 +7,8 @@ import {
   softDeleteEncuesta,
   restaurarEncuesta,
   deleteEncuesta,
-  updateEncuesta
+  updateEncuesta,
+  getEncuestasDeleted,
 } from "../../../Shared/services/encuestasService";
 
 const TABS = [
@@ -40,6 +41,20 @@ const EncuestList = () => {
     }
   };
 
+
+  const fetchEncuestasDeleted = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getEncuestasDeleted(); // llamamos al service para encuestas eliminadas
+      setEncuestas(data);
+    } catch (err) {
+      setError("Error al cargar encuestas eliminadas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtrar encuestas según tab
   const encuestasActivas = encuestas.filter(e => !e.deleted);
   const encuestasEliminadas = encuestas.filter(e => e.deleted);
@@ -65,7 +80,7 @@ const EncuestList = () => {
     if (!encuesta) return;
     await updateEncuesta(idEncuesta, {
       ...encuesta,
-      estado: "inactiva"
+      estado: "deshabilitada"
     });
     fetchEncuestas();
     setSelectedSurvey(null);
@@ -75,7 +90,7 @@ const EncuestList = () => {
     if (!encuesta) return;
     await updateEncuesta(idEncuesta, {
       ...encuesta,
-      estado: "activa"
+      estado: "habilitada"
     });
     fetchEncuestas();
     setSelectedSurvey(null);
@@ -119,7 +134,13 @@ const EncuestList = () => {
             <button
               key={t.key}
               className={`px-4 py-2 rounded-t font-semibold border-b-2 transition-colors duration-150 ${tab === t.key ? 'border-orange-500 text-orange-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-orange-600'}`}
-              onClick={() => { setTab(t.key); setSelectedSurvey(null); }}
+              onClick={async () => {
+                setTab(t.key);
+                setSelectedSurvey(null);
+                // Traemos encuestas según tab
+                if (t.key === "activas") await fetchEncuestas();
+                if (t.key === "papelera") await fetchEncuestasDeleted();
+              }}
             >
               {t.label}
             </button>
@@ -135,8 +156,8 @@ const EncuestList = () => {
             ) : error ? (
               <div className="text-center py-12 text-red-600">{error}</div>
             ) : (
-              <SurveyTable 
-                surveys={surveys} 
+              <SurveyTable
+                surveys={surveys}
                 selectedSurvey={selectedSurvey}
                 onSurveySelect={handleSurveySelect}
                 tab={tab}

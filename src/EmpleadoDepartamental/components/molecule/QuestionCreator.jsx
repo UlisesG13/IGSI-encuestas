@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const tipos = [
-  { id: 'open', label: 'Respuesta Abierta' },
-  { id: 'multiple', label: 'Opción Múltiple' },
-  { id: 'checklist', label: 'Checkbox' },
-  { id: 'likert', label: 'Escala Likert' },
-  { id: 'boolean', label: 'Verdadero/Falso (Sí o No)' },
-];
-
-export default function QuestionCreator({ onAdd, secciones, selectedSectionId }) {
+export default function QuestionCreator({ onAdd, secciones, selectedSectionId, tiposPregunta = [] }) {
   const [textoPregunta, setTextoPregunta] = useState("");
   const [idTipoPregunta, setIdTipoPregunta] = useState("");
   const [ayuda, setAyuda] = useState("");
@@ -26,13 +18,20 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
     }
   }, [secciones, selectedSectionId]);
 
+  // Detectar si el tipo de pregunta requiere opciones
+  const tipoActual = tiposPregunta.find(tipo => String(tipo.idTipo) === String(idTipoPregunta));
+  const requiereOpciones = tipoActual && (
+    tipoActual.nombre === "opcion_multiple" ||
+    tipoActual.nombre === "check_box"
+  );
+
   useEffect(() => {
-    if (idTipoPregunta === "multiple" || idTipoPregunta === "checklist") {
+    if (requiereOpciones) {
       setOpciones(["", ""]);
     } else {
       setOpciones([]);
     }
-  }, [idTipoPregunta]);
+  }, [idTipoPregunta, requiereOpciones]);
 
   const handleOpcionChange = (idx, value) => {
     const nuevasOpciones = [...opciones];
@@ -55,8 +54,16 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!textoPregunta.trim() || !idTipoPregunta || !idSeccion) return;
-    if ((idTipoPregunta === "multiple" || idTipoPregunta === "checklist") && opcionesValidas.length < 2) return;
-    onAdd({ textoPregunta, idTipoPregunta, ayuda, idSeccion, opciones: (idTipoPregunta === "multiple" || idTipoPregunta === "checklist") ? opcionesValidas : undefined });
+    if (requiereOpciones && opcionesValidas.length < 2) return;
+
+    onAdd({
+      textoPregunta,
+      idTipoPregunta: Number(idTipoPregunta),
+      ayuda,
+      idSeccion,
+      respuestasPosibles: requiereOpciones ? opcionesValidas.map(texto => ({ textoRespuesta: texto })) : []
+    });
+
     setTextoPregunta("");
     setIdTipoPregunta("");
     setAyuda("");
@@ -67,7 +74,7 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
     <form onSubmit={handleSubmit} className="mb-4 flex flex-col gap-2">
       <select
         value={idSeccion}
-        onChange={e => setIdSeccion(e.target.value)}
+        onChange={e => setIdSeccion(Number(e.target.value))}
         className="border rounded px-3 py-2"
         required
       >
@@ -85,16 +92,17 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
       />
       <select
         value={idTipoPregunta}
-        onChange={e => setIdTipoPregunta(e.target.value)}
+        onChange={e => setIdTipoPregunta(Number(e.target.value))}
         className="border rounded px-3 py-2"
         required
       >
         <option value="">Tipo de pregunta</option>
-        {tipos.map(tipo => (
-          <option key={tipo.id} value={tipo.id}>{tipo.label}</option>
+        {tiposPregunta.map(tipo => (
+          <option key={tipo.idTipo} value={tipo.idTipo}>{tipo.nombre}</option>
         ))}
       </select>
-      {(idTipoPregunta === "multiple" || idTipoPregunta === "checklist") && (
+
+      {requiereOpciones && (
         <div className="flex flex-col gap-2 bg-gray-50 p-3 rounded">
           <label className="font-semibold text-sm">Opciones (mínimo 2)</label>
           {opciones.map((op, idx) => (
@@ -115,6 +123,7 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
           <button type="button" onClick={handleAddOpcion} className="text-blue-500 text-sm mt-1 self-start">+ Agregar opción</button>
         </div>
       )}
+
       <textarea
         value={ayuda}
         onChange={e => setAyuda(e.target.value)}
@@ -122,9 +131,14 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId })
         className="border rounded px-3 py-2"
         rows={2}
       />
-      <button type="submit" className="bg-green-500 text-white rounded px-4 py-2 mt-1"
-        disabled={(idTipoPregunta === "multiple" || idTipoPregunta === "checklist") && opcionesValidas.length < 2}
-      >Agregar pregunta</button>
+
+      <button
+        type="submit"
+        className="bg-green-500 text-white rounded px-4 py-2 mt-1"
+        disabled={requiereOpciones && opcionesValidas.length < 2}
+      >
+        Agregar pregunta
+      </button>
     </form>
   );
 }

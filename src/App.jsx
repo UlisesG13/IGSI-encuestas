@@ -26,7 +26,7 @@ function App() {
 
       {/* EmpleadoDepartamental routes */}
       <Route path="crearEncuestas" element={<CreateSurveyPage />} />
-      <Route path="encuestasLista" element={<EncuestList></EncuestList>} />
+      <Route path="encuestasLista" element={<EncuestList />} />
 
 
       <Route path="login" element={<Login />} />
