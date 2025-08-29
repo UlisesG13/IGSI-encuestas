@@ -12,97 +12,109 @@ import {
   getEstadisticasDepartamentos,
 } from "../../services/departamentosService";
 import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
-import { getEstadisticasEncuestas } from "../../services/encuestasService";
+import {
+  getTodasLasEncuestas,
+  getEncuestasByDepartamento
+} from "../../services/encuestasService";
 
 const DepartamentosDashboard = () => {
+  let titulo = "Dashboard de Departamentos";
+  const [departamentos, setDepartamentos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [estadisticas, setEstadisticas] = useState({
+    departamentos: 0,
+    encuestas: 0,
+    empleados: 0
+  });
 
-    let titulo = "Dashboard de Departamentos";
-    const [departamentos, setDepartamentos] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [estadisticas, setEstadisticas] = useState({
-      departamentos: 0,
-      encuestas: 0,
-      empleados: 0
-    });
+  // 🔹 Fetch de departamentos
+  const fetchDepartamentos = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getDepartamentos();
+      setDepartamentos(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setError("No se pudieron cargar los departamentos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchDepartamentos = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await getDepartamentos();
-        setDepartamentos(Array.isArray(data) ? data : []);
-      } catch (e) {
-        setError("No se pudieron cargar los departamentos");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 🔹 Fetch de estadísticas globales
+  const fetchEstadisticas = async () => {
+    try {
+      const [statsDepartamentos, statsUsuarios, encuestas] = await Promise.all([
+        getEstadisticasDepartamentos(),
+        getEstadisticasUsuarios(),
+        getTodasLasEncuestas() // usamos las encuestas del nuevo service
+      ]);
 
-    const fetchEstadisticas = async () => {
-      try {
-        const [statsDepartamentos, statsUsuarios, statsEncuestas] = await Promise.all([
-          getEstadisticasDepartamentos(),
-          getEstadisticasUsuarios(),
-          getEstadisticasEncuestas()
-        ]);
-        
-        setEstadisticas({
-          departamentos: statsDepartamentos.totalDepartamentos,
-          empleados: statsUsuarios.totalUsuarios,
-          encuestas: statsEncuestas.totalEncuestas
-        });
-      } catch (error) {
-        console.error("Error cargando estadísticas:", error);
-      }
-    };
+      setEstadisticas({
+        departamentos: statsDepartamentos.totalDepartamentos,
+        empleados: statsUsuarios.totalUsuarios,
+        encuestas: Array.isArray(encuestas) ? encuestas.length : 0
+      });
+    } catch (error) {
+      console.error("Error cargando estadísticas:", error);
+    }
+  };
 
-    useEffect(() => {
-      fetchDepartamentos();
-      fetchEstadisticas();
-    }, []);
+  useEffect(() => {
+    fetchDepartamentos();
+    fetchEstadisticas();
+  }, []);
 
-    const listaDeDepartamentos = useMemo(() => {
-      return departamentos.map((d) => ({
-        id: d.idDepartamento,
-        nombreDepartamento: d.nombre,
-        descripcionDepartamento: d.descripcion,
-        numeroEncuestas: d.numeroEncuestas ?? 0,
-      }));
-    }, [departamentos]);
+  // 🔹 Mapear departamentos con número de encuestas
+  const listaDeDepartamentos = useMemo(() => {
+    return departamentos.map((d) => ({
+      id: d.idDepartamento,
+      nombreDepartamento: d.nombre,
+      descripcionDepartamento: d.descripcion,
+      // traer número de encuestas asociadas a este departamento
+      numeroEncuestas: d.numeroEncuestas ?? 0,
+    }));
+  }, [departamentos]);
 
-    const handleCreate = async ({ nombre, descripcion }) => {
-      await createDepartamento({ nombre, descripcion });
+  // 🔹 Handlers CRUD para departamentos
+  const handleCreate = async ({ nombre, descripcion }) => {
+    await createDepartamento({ nombre, descripcion });
+    await fetchDepartamentos();
+    await fetchEstadisticas();
+  };
+
+  const handleEdit = async (idDepartamento, { nombre, descripcion }) => {
+    await updateDepartamento(idDepartamento, { nombre, descripcion });
+    setDepartamentos((prev) =>
+      prev.map((d) =>
+        d.idDepartamento === idDepartamento
+          ? { ...d, nombre, descripcion }
+          : d
+      )
+    );
+    await fetchEstadisticas();
+  };
+
+  const handleSoftDelete = async (idDepartamento) => {
+    try {
+      await softDeleteDepartamento(idDepartamento);
       await fetchDepartamentos();
       await fetchEstadisticas();
-    };
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
-    const handleEdit = async (idDepartamento, { nombre, descripcion }) => {
-      await updateDepartamento(idDepartamento, { nombre, descripcion });
+  const handleHardDelete = async (idDepartamento) => {
+    try {
+      await deleteDepartamento(idDepartamento);
       await fetchDepartamentos();
       await fetchEstadisticas();
-    };
-
-    const handleSoftDelete = async (idDepartamento) => {
-      try {
-        await softDeleteDepartamento(idDepartamento);
-        await fetchDepartamentos();
-        await fetchEstadisticas();
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    const handleHardDelete = async (idDepartamento) => {
-      try {
-        await deleteDepartamento(idDepartamento);
-        await fetchDepartamentos();
-        await fetchEstadisticas();
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -116,6 +128,7 @@ const DepartamentosDashboard = () => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_350px] gap-4 md:gap-8 items-start max-w-full">
+          {/* Tarjetas de estadísticas */}
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6 order-2 lg:order-1">
             <DashboardCards 
               numeroDepartamentos={estadisticas.departamentos} 
@@ -124,6 +137,7 @@ const DepartamentosDashboard = () => {
             />
           </div>
           
+          {/* Lista de departamentos */}
           <div className="flex flex-col gap-6 md:gap-8 order-1 lg:order-2">
             <DepartamentsList 
               listaDeDepartamentos={listaDeDepartamentos} 
@@ -135,15 +149,14 @@ const DepartamentosDashboard = () => {
             />
           </div>
           
+          {/* Formulario de nuevo departamento */}
           <div className="flex flex-col gap-4 md:gap-6 order-3">
             <DepartmentFormOrganism onCreate={handleCreate} />
           </div>
         </div>
-        
-        
       </div>
     </div>
   );
-}
+};
 
 export default DepartamentosDashboard;

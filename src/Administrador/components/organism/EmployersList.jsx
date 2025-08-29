@@ -53,7 +53,9 @@ const EmployersList = ({ listaDeEmpleados, onEdit, onDelete, loading, error, dep
               nombre={empleado.nombre}
               correo={empleado.correo}
               idDepartamento={empleado.idDepartamento}
-              nombreDepartamento={empleado.nombreDepartamento}
+              nombreDepartamento={
+                empleado.idDepartamento === null ? "Administrador" : empleado.nombreDepartamento
+              }
               idEmpleado={empleado.id}
               onEdit={onEdit}
               onDelete={onDelete}

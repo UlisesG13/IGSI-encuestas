@@ -10,6 +10,11 @@ function authHeaders(extra = {}) {
   };
 }
 
+function isJsonResponse(response) {
+  const contentType = response.headers.get("content-type");
+  return contentType && contentType.includes("application/json");
+}
+
 export async function getDepartamentos() {
   const response = await fetch(API_BASE, {
     method: "GET",
@@ -35,7 +40,10 @@ export async function createDepartamento({ nombre, descripcion }) {
     body: JSON.stringify({ nombre, descripcion }),
   });
   if (!response.ok) throw new Error("Error al crear el departamento");
-  return response.json();
+  if (isJsonResponse(response)) {
+    return response.json();
+  }
+  return {};
 }
 
 export async function updateDepartamento(idDepartamento, { nombre, descripcion }) {
@@ -45,7 +53,10 @@ export async function updateDepartamento(idDepartamento, { nombre, descripcion }
     body: JSON.stringify({ nombre, descripcion }),
   });
   if (!response.ok) throw new Error("Error al actualizar el departamento");
-  return response.json();
+  if (isJsonResponse(response)) {
+    return response.json();
+  }
+  return {};
 }
 
 export async function softDeleteDepartamento(idDepartamento) {
@@ -54,13 +65,18 @@ export async function softDeleteDepartamento(idDepartamento) {
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = isJsonResponse(response)
+      ? await response.json().catch(() => ({}))
+      : {};
     if (errorData.message && errorData.message.includes("foreign key constraint fails")) {
       throw new Error("No se puede eliminar el departamento porque tiene empleados o encuestas asociadas");
     }
     throw new Error("Error al eliminar (soft) el departamento");
   }
-  return response.json();
+  if (isJsonResponse(response)) {
+    return response.json();
+  }
+  return {};
 }
 
 export async function deleteDepartamento(idDepartamento) {
@@ -69,13 +85,18 @@ export async function deleteDepartamento(idDepartamento) {
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = isJsonResponse(response)
+      ? await response.json().catch(() => ({}))
+      : {};
     if (errorData.message && errorData.message.includes("foreign key constraint fails")) {
       throw new Error("No se puede eliminar el departamento porque tiene empleados o encuestas asociadas");
     }
     throw new Error("Error al eliminar el departamento");
   }
-  return response.json().catch(() => ({}));
+  if (isJsonResponse(response)) {
+    return response.json().catch(() => ({}));
+  }
+  return {};
 }
 
 // Función para obtener estadísticas de departamentos
