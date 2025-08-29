@@ -3,7 +3,7 @@ const QuestionEditor = ({ type }) => {
     case "open":
       return (
         <textarea
-          placeholder="Texto de respuesta largo"
+          placeholder="Respuesta abierta"
           className="w-full border rounded-lg p-3 mt-3 outline-none"
           rows={4}
         />
@@ -12,8 +12,25 @@ const QuestionEditor = ({ type }) => {
     case "multiple":
       return (
         <div className="mt-3 space-y-2">
-          <input type="text" placeholder="Opción 1" className="w-full border p-2 rounded-lg" />
-          <input type="text" placeholder="Opción 2" className="w-full border p-2 rounded-lg" />
+          <label className="flex items-center gap-2">
+            <input type="checkbox" /> Opción 1
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" /> Opción 2
+          </label>
+          <button className="text-blue-500 text-sm mt-1">+ Agregar opción</button>
+        </div>
+      );
+
+    case "checklist":
+      return (
+        <div className="mt-3 space-y-2">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" /> Opción 1
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" /> Opción 2
+          </label>
           <button className="text-blue-500 text-sm mt-1">+ Agregar opción</button>
         </div>
       );
@@ -30,16 +47,15 @@ const QuestionEditor = ({ type }) => {
         </div>
       );
 
-    case "checklist":
+    case "boolean":
       return (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 flex gap-4">
           <label className="flex items-center gap-2">
-            <input type="checkbox" /> Opción 1
+            <input type="radio" name="boolean" disabled /> Sí
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" /> Opción 2
+            <input type="radio" name="boolean" disabled /> No
           </label>
-          <button className="text-blue-500 text-sm mt-1">+ Agregar opción</button>
         </div>
       );
 

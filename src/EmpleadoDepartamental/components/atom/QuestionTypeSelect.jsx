@@ -8,8 +8,9 @@ const QuestionTypeSelect = ({ value, onChange }) => {
     >
       <option value="open">📄 Respuesta abierta</option>
       <option value="multiple">🔘 Opción múltiple</option>
+      <option value="checklist">☑️ Checkbox</option>
       <option value="likert">📊 Escala Likert</option>
-      <option value="checklist">☑️ Checklist</option>
+      <option value="boolean">✔️ Verdadero/Falso (Sí o No)</option>
     </select>
   );
 };

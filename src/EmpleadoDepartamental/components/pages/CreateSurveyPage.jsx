@@ -29,6 +29,7 @@ const CreateSurveyPage = () => {
   const [secciones, setSecciones] = useState([]);
   const [preguntas, setPreguntas] = useState([]);
   const [showSectionModal, setShowSectionModal] = useState(false);
+  const [selectedSectionId, setSelectedSectionId] = useState(null);
   // Para IDs únicos
   const nextSectionId = secciones.length ? Math.max(...secciones.map(s => s.id)) + 1 : 1;
 
@@ -52,6 +53,15 @@ const CreateSurveyPage = () => {
     if (!isValid) return alert("Completa todos los campos correctamente.");
     setEncuestaCreada(true);
     // Aquí iría la llamada al backend para crear la encuesta y obtener el idEncuesta
+  };
+
+  // Drag&Drop para reordenar secciones
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const reordered = Array.from(secciones);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    setSecciones(reordered);
   };
 
   return (
@@ -158,9 +168,15 @@ const CreateSurveyPage = () => {
               <div className="flex-1 overflow-y-auto mt-2">
                 <SectionList
                   secciones={secciones}
-                  preguntas={preguntas}
-                  onDeleteSection={idx => setSecciones(secciones.filter((_, i) => i !== idx))}
-                  onDeletePregunta={(secId, i) => setPreguntas(preguntas.filter((p, idx) => !(p.idSeccion === secId && idx === i)))}
+                  selectedId={selectedSectionId}
+                  onSelectSection={setSelectedSectionId}
+                  onDeleteSection={idx => {
+                    setSecciones(secciones.filter((_, i) => i !== idx));
+                    if (selectedSectionId === secciones[idx]?.id && secciones.length > 1) {
+                      setSelectedSectionId(secciones[0].id);
+                    }
+                  }}
+                  onDragEnd={handleDragEnd}
                 />
               </div>
               {/* Botón para abrir el modal de agregar sección, solo abajo */}
@@ -169,9 +185,6 @@ const CreateSurveyPage = () => {
                   className="w-full flex flex-col items-center"
                   onClick={() => setShowSectionModal(true)}
                 >
-                  <span className="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center mb-2 shadow">
-                    <span className="text-xl text-gray-700 font-bold">+</span>
-                  </span>
                   <span className="border border-gray-300 rounded-full px-6 py-2 text-gray-700 font-medium shadow">Agregar sección</span>
                 </button>
               </div>
@@ -179,8 +192,10 @@ const CreateSurveyPage = () => {
                 isOpen={showSectionModal}
                 onClose={() => setShowSectionModal(false)}
                 onCreate={sec => {
-                  setSecciones([...secciones, { ...sec, id: nextSectionId }]);
+                  const newSection = { ...sec, id: nextSectionId };
+                  setSecciones([...secciones, newSection]);
                   setShowSectionModal(false);
+                  setSelectedSectionId(newSection.id);
                 }}
                 nextOrder={secciones.length + 1}
               />
@@ -192,12 +207,13 @@ const CreateSurveyPage = () => {
                 <QuestionCreator
                   onAdd={q => setPreguntas([...preguntas, { ...q }])}
                   secciones={secciones}
+                  selectedSectionId={selectedSectionId}
                 />
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h4 className="text-md font-semibold mb-2">Preguntas creadas</h4>
                 <QuestionList
-                  preguntas={preguntas}
+                  preguntas={preguntas.filter(p => p.idSeccion === selectedSectionId)}
                   onDelete={idx => setPreguntas(preguntas.filter((_, i) => i !== idx))}
                 />
               </div>
