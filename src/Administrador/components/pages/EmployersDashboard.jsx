@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "../organism/Header";
+import AlertContainer from "../../../Shared/components/molecule/AlertContainer";
 import DashboardCards from "../molecule/DashboardCards";
 import EmployersList from "../organism/EmployersList";
 import EmployersFormOrganism from "../organism/EmployersFormOrganims";
@@ -39,6 +40,7 @@ const EmployersDashboard = () => {
       setUsuarios(Array.isArray(data) ? data : []);
     } catch (e) {
       setError("No se pudieron cargar los usuarios");
+      window.showAlert("No se pudieron cargar los usuarios", "error");
     } finally {
       setLoading(false);
     }
@@ -129,13 +131,18 @@ const EmployersDashboard = () => {
   };
 
   const handleDelete = async (idUsuario) => {
-    await eliminarUsuario(idUsuario);
-    setUsuarios((prev) => prev.filter((u) => u.idUsuario !== idUsuario));
-    await fetchEstadisticas();
+    try {
+      await eliminarUsuario(idUsuario);
+      setUsuarios((prev) => prev.filter((u) => u.idUsuario !== idUsuario));
+      await fetchEstadisticas();
+    } catch (error) {
+      window.showAlert(error.message, "error");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <AlertContainer />
       <Header />
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">
