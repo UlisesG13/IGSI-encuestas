@@ -61,7 +61,22 @@ const EncuestList = () => {
     setSelectedSurvey(null);
   };
   const handleDeshabilitar = async (idEncuesta) => {
-    await updateEncuesta(idEncuesta, { estado: "deshabilitada" });
+    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+    if (!encuesta) return;
+    await updateEncuesta(idEncuesta, {
+      ...encuesta,
+      estado: "inactiva"
+    });
+    fetchEncuestas();
+    setSelectedSurvey(null);
+  };
+  const handleHabilitar = async (idEncuesta) => {
+    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+    if (!encuesta) return;
+    await updateEncuesta(idEncuesta, {
+      ...encuesta,
+      estado: "activa"
+    });
     fetchEncuestas();
     setSelectedSurvey(null);
   };
@@ -81,6 +96,7 @@ const EncuestList = () => {
     surveys,
     onSoftDelete: (idx) => handleSoftDelete(surveys[idx].idEncuesta),
     onDeshabilitar: (idx) => handleDeshabilitar(surveys[idx].idEncuesta),
+    onHabilitar: (idx) => handleHabilitar(surveys[idx].idEncuesta),
     onRestaurar: (idx) => handleRestaurar(surveys[idx].idEncuesta),
     onDelete: (idx) => handleDelete(surveys[idx].idEncuesta)
   };

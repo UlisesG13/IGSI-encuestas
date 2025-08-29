@@ -7,7 +7,9 @@ import {
   softDeleteEncuesta, 
   restaurarEncuesta, 
   deleteEncuesta, 
-  cambiarEstadoEncuesta
+  cambiarEstadoEncuesta,
+  getEncuestasEliminadas,
+  updateEncuesta
 } from "../../services/encuestasService";
 import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
 import { getEstadisticasDepartamentos } from "../../services/departamentosService";
@@ -29,11 +31,20 @@ const EncuestDashboards = () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getTodasLasEncuestas();
+      let data;
+      if (showDeleted) {
+        // Si estamos en la papelera, traer encuestas eliminadas
+        data = await getEncuestasEliminadas();
+      } else {
+        // Si estamos en activas, traer encuestas no eliminadas
+        data = await getTodasLasEncuestas();
+      }
       setEncuestas(Array.isArray(data) ? data : []);
 
-      // Calcular número total de encuestas
-      setEstadisticas(prev => ({ ...prev, encuestas: Array.isArray(data) ? data.length : 0 }));
+      // Calcular número total de encuestas (solo para estadísticas)
+      if (!showDeleted) {
+        setEstadisticas(prev => ({ ...prev, encuestas: Array.isArray(data) ? data.length : 0 }));
+      }
     } catch (e) {
       console.error("Error fetching encuestas:", e);
       setError("No se pudieron cargar las encuestas");
@@ -80,7 +91,18 @@ const EncuestDashboards = () => {
   // 🔹 Handlers CRUD y de estado
   const handleSoftDelete = async (idEncuesta) => {
     try {
+      // Primero hacer soft-delete
       await softDeleteEncuesta(idEncuesta);
+      
+      // Luego cambiar el estado a inactiva
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (encuesta) {
+        await updateEncuesta(idEncuesta, {
+          ...encuesta,
+          estado: "inactiva"
+        });
+      }
+      
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {
@@ -90,7 +112,13 @@ const EncuestDashboards = () => {
 
   const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
     try {
-      await cambiarEstadoEncuesta(idEncuesta, nuevoEstado);
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) return;
+      
+      await updateEncuesta(idEncuesta, {
+        ...encuesta,
+        estado: nuevoEstado
+      });
       await fetchEncuestas();
       await fetchEstadisticas();
     } catch (error) {

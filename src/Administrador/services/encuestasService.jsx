@@ -20,6 +20,16 @@ export async function getTodasLasEncuestas() {
   return response.json();
 }
 
+// 🔹 LISTAR ENCUESTAS ELIMINADAS (para papelera)
+export async function getEncuestasEliminadas() {
+  const response = await fetch(`${API_BASE}/deleted`, {
+    method: "GET",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+  });
+  if (!response.ok) throw new Error("Error al obtener encuestas eliminadas");
+  return response.json();
+}
+
 // 🔹 LISTAR SOLO HABILITADAS (para alumnos)
 export async function getEncuestasHabilitadas() {
   const response = await fetch(`${API_BASE}/alumnos`, {
