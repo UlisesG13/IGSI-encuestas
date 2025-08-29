@@ -2,11 +2,13 @@ import SidebarActions from "../molecule/SidebarActions";
 import TableHeader from "../atom/TableHeader";
 import SurveyRow from "../molecule/SurveyRow";
 
-const SurveyTable = ({ surveys, selectedSurvey, onSurveySelect, tab }) => (
+const SurveyTable = ({ surveys, selectedSurvey, onSurveySelect, tab, departamento }) => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div className="px-6 py-4 border-b border-gray-200">
       <h2 className="text-lg font-medium text-gray-900">
-        {tab === 'papelera' ? 'Encuestas eliminadas (Papelera)' : 'Encuestas del Departamento <Departamento>'}
+        {tab === 'papelera'
+          ? 'Encuestas eliminadas (Papelera)'
+          : `Encuestas del Departamento${departamento ? `: ${departamento}` : ''}`}
       </h2>
     </div>
     <div className="overflow-x-auto">

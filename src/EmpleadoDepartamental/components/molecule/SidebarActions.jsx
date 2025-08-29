@@ -20,7 +20,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: XCircle,
       title: "Deshabilitar encuesta",
-      subtitle: "(No visible para alumnos)",
       color: "orange",
       disabled: !hasSelection || isDeshabilitada,
       onClick: () => hasSelection && onCambiarEstado(selectedSurvey, 'inactiva')
@@ -28,15 +27,13 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: RefreshCcw,
       title: "Habilitar encuesta",
-      subtitle: "(Volver a activa)",
       color: "green",
       disabled: !hasSelection || !isDeshabilitada,
       onClick: () => hasSelection && isDeshabilitada && onCambiarEstado(selectedSurvey, 'activa')
     },
     {
       icon: Trash2,
-      title: "Eliminar (Papelera)",
-      subtitle: "(Soft delete)",
+      title: "Enviar a Papelera",
       color: "red",
       disabled: !hasSelection,
       onClick: () => hasSelection && onSoftDelete(selectedSurvey)
@@ -44,7 +41,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: Edit,
       title: "Editar Encuesta",
-      subtitle: "(Recargar encuesta existente)",
       color: "green",
       disabled: !hasSelection,
       onClick: () => hasSelection && navigate(`/editarEncuesta/${surveys[selectedSurvey].idEncuesta}`)
@@ -52,7 +48,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: FileText,
       title: "Generar reporte",
-      subtitle: "(Buscar tablas y gráficas)",
       color: "orange",
       disabled: !hasSelection,
       onClick: () => hasSelection && console.log("Generar reporte", surveys[selectedSurvey].idEncuesta)
@@ -64,7 +59,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: RefreshCcw,
       title: "Restaurar encuesta",
-      subtitle: "(Volver a lista principal)",
       color: "blue",
       disabled: !hasSelection,
       onClick: () => hasSelection && onRestaurar(selectedSurvey)
@@ -72,7 +66,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
     {
       icon: Trash2,
       title: "Eliminar permanentemente",
-      subtitle: "(Borrado definitivo)",
       color: "red",
       disabled: !hasSelection,
       onClick: () => hasSelection && onDelete(selectedSurvey)

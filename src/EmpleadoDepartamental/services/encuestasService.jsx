@@ -2,6 +2,7 @@ import { getToken } from "../../Shared/services/authService";
 
 const API_BASE = "http://localhost:8080/api/encuestas";
 
+
 function authHeaders(extra = {}) {
   const token = getToken();
   return {
@@ -10,6 +11,15 @@ function authHeaders(extra = {}) {
   };
 }
 
+// Obtener encuestas por departamento
+export async function getEncuestasByDepartamento(idDepartamento) {
+  const response = await fetch(`${API_BASE}/departamento/${idDepartamento}`, {
+    method: "GET",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+  });
+  if (!response.ok) throw new Error("Error al obtener encuestas por departamento");
+  return response.json();
+}
 export async function getTodasLasEncuestas() {
   const response = await fetch(`${API_BASE}/master`, {
     method: "GET",

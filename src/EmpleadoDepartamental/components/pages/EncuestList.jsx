@@ -1,9 +1,12 @@
+import { getDepartamentoById } from "../../../Administrador/services/departamentosService";
 import Header from "../organism/Header";
 import { useState, useEffect } from "react";
+import { getToken, getUsuarioByCorreo } from "../../../Shared/services/authService";
+import { parseJwt } from "../../../Shared/services/jwtUtils";
 import SidebarActions from "../molecule/SidebarActions";
 import SurveyTable from "../organism/SurveyTable";
 import {
-  getTodasLasEncuestas,
+  getEncuestasByDepartamento,
   getEncuestasEliminadas,
   updateEncuesta,
   softDeleteEncuesta,
@@ -16,36 +19,84 @@ const TABS = [
   { key: "papelera", label: "Papelera" }
 ];
 
+
 const EncuestList = () => {
   const [selectedSurvey, setSelectedSurvey] = useState(null);
   const [tab, setTab] = useState("activas");
   const [loading, setLoading] = useState(false);
   const [encuestas, setEncuestas] = useState([]);
   const [error, setError] = useState(null);
+  const [departamento, setDepartamento] = useState("");
+  const [idDepartamento, setIdDepartamento] = useState(null);
 
-  // Cargar encuestas reales
+  // Obtener departamento y usuario al montar
   useEffect(() => {
-    fetchEncuestas();
-  }, [tab]);
-
-  const fetchEncuestas = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      let data;
-      if (tab === "papelera") {
-        data = await getEncuestasEliminadas();
-      } else {
-        data = await getTodasLasEncuestas();
+    const fetchDepartamento = async () => {
+      try {
+        const token = getToken();
+        const payload = parseJwt(token);
+        if (payload && payload.sub) {
+          const usuario = await getUsuarioByCorreo(payload.sub);
+          setIdDepartamento(usuario.idDepartamento);
+          let nombreDepto = usuario.departamentoNombre || usuario.nombreDepartamento || "";
+          if (usuario.idDepartamento) {
+            const departamentoObj = await getDepartamentoById(usuario.idDepartamento);
+            if (departamentoObj && departamentoObj.nombre) {
+              nombreDepto = departamentoObj.nombre;
+            }
+          }
+          setDepartamento(nombreDepto);
+        }
+      } catch (e) {
+        setDepartamento("");
       }
-      setEncuestas(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError("Error al cargar encuestas");
-      setEncuestas([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchDepartamento();
+  }, []);
+
+  // Cargar encuestas cuando cambia el tab o el departamento
+  useEffect(() => {
+    const fetchEncuestas = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let data = [];
+        if (tab === "papelera") {
+          try {
+            if (idDepartamento) {
+              data = await getEncuestasEliminadas(idDepartamento);
+            }
+          } catch (err) {
+            if (err.message && err.message.includes('404')) {
+              data = [];
+            } else {
+              throw err;
+            }
+          }
+        } else {
+          try {
+            if (idDepartamento) {
+              data = await getEncuestasByDepartamento(idDepartamento);
+            }
+          } catch (err) {
+            if (err.message && err.message.includes('404')) {
+              data = [];
+            } else {
+              throw err;
+            }
+          }
+        }
+        setEncuestas(Array.isArray(data) ? data : []);
+        setError(null);
+      } catch (err) {
+        setError("Ocurrió un error inesperado al cargar las encuestas");
+        setEncuestas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (idDepartamento) fetchEncuestas();
+  }, [tab, idDepartamento]);
 
 
   // Acciones
@@ -78,7 +129,14 @@ const EncuestList = () => {
     if (nuevoEstado === "activa") estadoBackend = "habilitada";
     if (nuevoEstado === "inactiva") estadoBackend = "deshabilitada";
     await updateEncuesta(idEncuesta, { ...encuesta, estado: estadoBackend });
-    await fetchEncuestas();
+    // Refrescar encuestas
+    if (idDepartamento) {
+      if (tab === "papelera") {
+        setEncuestas(await getEncuestasEliminadas(idDepartamento));
+      } else {
+        setEncuestas(await getEncuestasByDepartamento(idDepartamento));
+      }
+    }
     setSelectedSurvey(null);
   };
 
@@ -109,6 +167,9 @@ const EncuestList = () => {
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Encuestas</h1>
+          {departamento && (
+            <p className="text-base font-semibold text-gray-700 mb-2">Departamento: {departamento}</p>
+          )}
           {selectedSurvey !== null && (
             <p className="text-sm text-gray-600">
               Encuesta seleccionada: {surveys[selectedSurvey]?.titulo || surveys[selectedSurvey]?.nombre}
@@ -134,15 +195,30 @@ const EncuestList = () => {
           <div className="flex-1">
             {loading ? (
               <div className="text-center py-12 text-orange-600">Cargando encuestas...</div>
-            ) : error ? (
-              <div className="text-center py-12 text-red-600">{error}</div>
             ) : (
-              <SurveyTable 
-                surveys={surveys} 
-                selectedSurvey={selectedSurvey}
-                onSurveySelect={handleSurveySelect}
-                tab={tab}
-              />
+              surveys.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-6xl mb-4">📭</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {tab === 'papelera' ? 'Papelera vacía' : 'No hay encuestas registradas'}
+                  </h3>
+                  <p className="text-gray-500">
+                    {tab === 'papelera' 
+                      ? 'No hay encuestas eliminadas en la papelera.' 
+                      : 'No hay encuestas activas disponibles en este momento.'}
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12 text-red-600">{error}</div>
+              ) : (
+                <SurveyTable 
+                  surveys={surveys} 
+                  selectedSurvey={selectedSurvey}
+                  onSurveySelect={handleSurveySelect}
+                  tab={tab}
+                  departamento={departamento}
+                />
+              )
             )}
           </div>
         </div>
