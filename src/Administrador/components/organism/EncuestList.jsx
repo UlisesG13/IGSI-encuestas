@@ -103,7 +103,7 @@ const EncuestList = ({ encuestas, onSoftDelete, onRestaurar, onDelete, onCambiar
         {!loading && !error && encuestasToShow.length > 0 ? (
           encuestasToShow.map(encuesta => (
                          <EncuestCard 
-               key={encuesta.id} 
+               key={encuesta.idEncuesta || encuesta.id} 
                encuesta={encuesta}
                onSoftDelete={onSoftDelete}
                onRestaurar={onRestaurar}

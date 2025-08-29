@@ -66,10 +66,10 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
         <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-large z-50">
           <div className="py-1">
             {/* Opciones de estado */}
-            {!showDeleted && estado !== 'habilitada' && (
+            {!showDeleted && estado !== 'activa' && (
               <>
                 <button
-                  onClick={() => handleCambiarEstado(idEncuesta, 'habilitada')}
+                  onClick={() => handleCambiarEstado(idEncuesta, 'activa')}
                   className="w-full text-left px-3 py-2 text-sm text-green-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-green-50 focus:outline-none"
                 >
                   Habilitar
@@ -78,10 +78,10 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
               </>
             )}
             
-            {!showDeleted && estado !== 'deshabilitada' && (
+            {!showDeleted && estado !== 'inactiva' && (
               <>
                 <button
-                  onClick={() => handleCambiarEstado(idEncuesta, 'deshabilitada')}
+                  onClick={() => handleCambiarEstado(idEncuesta, 'inactiva')}
                   className="w-full text-left px-3 py-2 text-sm text-yellow-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-yellow-50 focus:outline-none"
                 >
                   Deshabilitar

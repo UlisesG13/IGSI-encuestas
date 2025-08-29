@@ -6,9 +6,9 @@ const EncuestCard = ({ encuesta, onSoftDelete, onRestaurar, onDelete, onCambiarE
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'habilitada':
+      case 'activa':
         return 'text-green-600 bg-green-50';
-      case 'deshabilitada':
+      case 'inactiva':
         return 'text-yellow-600 bg-yellow-50';
       case 'cerrada':
         return 'text-blue-600 bg-blue-50';
@@ -52,7 +52,7 @@ const EncuestCard = ({ encuesta, onSoftDelete, onRestaurar, onDelete, onCambiarE
       
         <div className="flex justify-end min-w-12">
          <EncuestMenuButton 
-           idEncuesta={encuesta.id}
+           idEncuesta={encuesta.idEncuesta || encuesta.id}
            estado={encuesta.estado}
            onSoftDelete={onSoftDelete}
            onRestaurar={onRestaurar}

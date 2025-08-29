@@ -7,97 +7,14 @@ import {
   softDeleteEncuesta, 
   restaurarEncuesta, 
   deleteEncuesta, 
-  cambiarEstadoEncuesta,
   getEncuestasEliminadas,
   updateEncuesta
 } from "../../services/encuestasService";
 import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
-import QuestionChartModal from "../molecule/QuestionChartModal";
 import { getEstadisticasDepartamentos } from "../../services/departamentosService";
 
 const EncuestDashboards = () => {
-  // Encuesta de ejemplo para mostrar en el modal
-  const encuestaEjemplo = {
-    idEncuesta: 1,
-    titulo: "prueba",
-    descripcion: "es una prueba de una encuesta",
-    idDepartamento: 1,
-    fechaInicio: "2025-08-01",
-    fechaFin: "2025-08-02",
-    estado: "deshabilitada",
-    deleted: false,
-    secciones: [
-      {
-        idSeccion: 1,
-        titulo: "Infraestructura demo",
-        descripcion: "Opinión sobre instalaciones y equipamiento.",
-        orden: 1,
-        preguntas: [
-          {
-            idPregunta: 1,
-            textoPregunta: "pregunta",
-            idTipoPregunta: 1,
-            orden: 1,
-            ayuda: "esta es una prueba de pregunta no hace falta contestar",
-            puntaje: 0,
-            respuestas: [
-              {
-                idRespuestaPosible: 1,
-                idPregunta: 1,
-                textoRespuesta: "opcion 1",
-                puntaje: 0,
-                esCorrecta: false
-              },
-              {
-                idRespuestaPosible: 2,
-                idPregunta: 1,
-                textoRespuesta: "opcion numero 2",
-                puntaje: 0,
-                esCorrecta: true
-              }
-            ]
-          },
-          {
-            idPregunta: 2,
-            textoPregunta: "pregunta2",
-            idTipoPregunta: 1,
-            orden: 1,
-            ayuda: "esta es otra prueba",
-            puntaje: 0,
-            respuestas: [
-              {
-                idRespuestaPosible: 3,
-                idPregunta: 2,
-                textoRespuesta: "opcion 1",
-                puntaje: 0,
-                esCorrecta: true
-              },
-              {
-                idRespuestaPosible: 4,
-                idPregunta: 2,
-                textoRespuesta: "opcion 2",
-                puntaje: 0,
-                esCorrecta: false
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-  // Estado para mostrar los modales temporales
-  const [showPreguntasModal, setShowPreguntasModal] = useState(false);
-  const [showChartModal, setShowChartModal] = useState(false);
-  // Ejemplo de pregunta para el modal de gráfica
-  const ejemploPregunta = {
-    idPregunta: 1,
-    textoPregunta: "¿Qué opción prefieres?",
-    idTipoPregunta: 1,
-    respuestas: [
-      { idRespuestaPosible: 1, textoRespuesta: "Opción 1" },
-      { idRespuestaPosible: 2, textoRespuesta: "Opción 2" }
-    ]
-  };
+
   const titulo = "Dashboard de Encuestas";
   const [encuestas, setEncuestas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -114,23 +31,62 @@ const EncuestDashboards = () => {
     setLoading(true);
     setError("");
     try {
+      console.log("🔹 fetchEncuestas - showDeleted:", showDeleted);
+      
       let data;
       if (showDeleted) {
         // Si estamos en la papelera, traer encuestas eliminadas
+        console.log("📥 Cargando encuestas eliminadas...");
         data = await getEncuestasEliminadas();
       } else {
         // Si estamos en activas, traer encuestas no eliminadas
+        console.log("📥 Cargando encuestas activas...");
         data = await getTodasLasEncuestas();
       }
-      setEncuestas(Array.isArray(data) ? data : []);
+      
+      console.log("📋 Datos recibidos:", data);
+      
+      // Verificar que los datos sean válidos
+      if (!Array.isArray(data)) {
+        console.warn("⚠️ Los datos recibidos no son un array:", data);
+        setEncuestas([]);
+        setError("Formato de datos inválido del servidor");
+        return;
+      }
+      
+      // Filtrar encuestas según el estado actual (solución temporal)
+      let encuestasFiltradas = data;
+      if (!showDeleted) {
+        // Solo mostrar encuestas no eliminadas
+        encuestasFiltradas = data.filter(encuesta => !encuesta.deleted);
+        console.log("🔍 Encuestas filtradas (no eliminadas):", encuestasFiltradas.length);
+      } else {
+        // Solo mostrar encuestas eliminadas
+        encuestasFiltradas = data.filter(encuesta => encuesta.deleted);
+        console.log("🔍 Encuestas filtradas (eliminadas):", encuestasFiltradas.length);
+      }
+      
+      // Mostrar mensaje informativo si no hay encuestas
+      if (encuestasFiltradas.length === 0) {
+        if (showDeleted) {
+          console.log("📝 No hay encuestas eliminadas en la papelera");
+        } else {
+          console.log("📝 No hay encuestas activas disponibles");
+        }
+      }
+      
+      setEncuestas(encuestasFiltradas);
 
       // Calcular número total de encuestas (solo para estadísticas)
       if (!showDeleted) {
-        setEstadisticas(prev => ({ ...prev, encuestas: Array.isArray(data) ? data.length : 0 }));
+        setEstadisticas(prev => ({ ...prev, encuestas: encuestasFiltradas.length }));
       }
+      
+      console.log("✅ fetchEncuestas completado - encuestas cargadas:", data.length);
     } catch (e) {
-      console.error("Error fetching encuestas:", e);
-      setError("No se pudieron cargar las encuestas");
+      console.error("❌ Error fetching encuestas:", e);
+      setError(`Error al cargar encuestas: ${e.message}`);
+      setEncuestas([]);
     } finally {
       setLoading(false);
     }
@@ -161,62 +117,161 @@ const EncuestDashboards = () => {
 
   // 🔹 Lista de encuestas para la tabla
   const listaDeEncuestas = useMemo(() => {
-    return encuestas.map(e => ({
-      id: e.idEncuesta,
-      nombre: e.titulo,
-      fecha: `${e.fechaInicio} - ${e.fechaFin}`,
-      respuestas: e.numeroRespuestas || 0,
-      estado: e.estado,
-      deleted: e.deleted,
-    }));
+    return encuestas.map(e => {
+      // Mapear estados del backend a estados del frontend
+      let estadoFrontend = e.estado;
+      if (e.estado === 'habilitada') estadoFrontend = 'activa';
+      if (e.estado === 'deshabilitada') estadoFrontend = 'inactiva';
+      
+      return {
+        idEncuesta: e.idEncuesta,
+        nombre: e.titulo,
+        fecha: `${e.fechaInicio} - ${e.fechaFin}`,
+        respuestas: e.numeroRespuestas || 0,
+        estado: estadoFrontend,
+        deleted: e.deleted,
+      };
+    });
   }, [encuestas]);
 
   // 🔹 Handlers CRUD y de estado
   const handleSoftDelete = async (idEncuesta) => {
     try {
+      console.log("🔹 handleSoftDelete llamado con id:", idEncuesta);
+      
       // Obtener la encuesta antes del soft-delete
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-      if (!encuesta) return;
+      if (!encuesta) {
+        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
+        alert("No se encontró la encuesta en la lista local");
+        return;
+      }
       
-      // Primero hacer soft-delete
-      await softDeleteEncuesta(idEncuesta);
+      console.log("📋 Encuesta encontrada:", encuesta);
       
-      // Luego cambiar el estado a inactiva (usando los datos que teníamos)
-      await updateEncuesta(idEncuesta, {
+      // Verificar que la encuesta no esté eliminada
+      if (encuesta.deleted) {
+        console.log("⚠️ La encuesta ya está eliminada");
+        alert("La encuesta ya está eliminada");
+        return;
+      }
+      
+      // PASO 1: Deshabilitar la encuesta primero
+      console.log("🔄 PASO 1: Deshabilitando encuesta...");
+      const datosDeshabilitados = {
         ...encuesta,
-        estado: "inactiva"
-      });
+        estado: 'deshabilitada'
+      };
       
-      // Finalmente recargar la lista
+      console.log("📤 Datos para deshabilitar:", datosDeshabilitados);
+      await updateEncuesta(idEncuesta, datosDeshabilitados);
+      console.log("✅ Encuesta deshabilitada exitosamente");
+      
+             // PASO 2: Hacer soft-delete
+       console.log("🔄 PASO 2: Ejecutando soft-delete...");
+       await softDeleteEncuesta(idEncuesta);
+      
+      // Recargar la lista inmediatamente
+      console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
+      
+      console.log("✅ Soft-delete completado exitosamente");
+      alert("Encuesta deshabilitada y eliminada correctamente");
     } catch (error) {
-      alert(error.message);
+      console.error("❌ Error en handleSoftDelete:", error);
+      alert(`Error al eliminar encuesta: ${error.message}`);
     }
   };
 
   const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
     try {
-      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-      if (!encuesta) return;
+      console.log("🔹 handleCambiarEstado llamado con id:", idEncuesta, "nuevo estado:", nuevoEstado);
       
-      await updateEncuesta(idEncuesta, {
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) {
+        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
+        return;
+      }
+      
+      console.log("📋 Encuesta encontrada:", encuesta);
+      console.log("🔄 Actualizando estado a:", nuevoEstado);
+      
+      // Verificar que la encuesta no esté eliminada antes de actualizar
+      if (encuesta.deleted) {
+        console.log("⚠️ La encuesta está marcada como eliminada, no se puede actualizar");
+        alert("No se puede actualizar una encuesta eliminada");
+        return;
+      }
+      
+      // Mapear estados del frontend a estados del backend
+      let estadoBackend = nuevoEstado;
+      if (nuevoEstado === 'activa') estadoBackend = 'habilitada';
+      if (nuevoEstado === 'inactiva') estadoBackend = 'deshabilitada';
+      
+      const datosActualizados = {
         ...encuesta,
-        estado: nuevoEstado
-      });
+        estado: estadoBackend
+      };
+      
+      console.log("📤 Datos a enviar:", datosActualizados);
+      
+      await updateEncuesta(idEncuesta, datosActualizados);
+      
+      console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
+      
+      console.log("✅ Cambio de estado completado exitosamente");
     } catch (error) {
+      console.error("❌ Error en handleCambiarEstado:", error);
       alert(error.message);
     }
   };
 
   const handleRestaurar = async (idEncuesta) => {
     try {
-      await restaurarEncuesta(idEncuesta);
+      console.log("🔹 handleRestaurar llamado con id:", idEncuesta);
+      
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) {
+        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
+        return;
+      }
+      
+      console.log("📋 Encuesta encontrada:", encuesta);
+      
+      // Verificar que la encuesta esté eliminada
+      if (!encuesta.deleted) {
+        console.log("⚠️ La encuesta no está eliminada");
+        alert("La encuesta no está eliminada");
+        return;
+      }
+      
+             // PASO 1: Restaurar la encuesta (quitar deleted = true)
+       console.log("🔄 PASO 1: Restaurando encuesta...");
+       await restaurarEncuesta(idEncuesta);
+      console.log("✅ Encuesta restaurada exitosamente");
+      
+      // PASO 2: Habilitar la encuesta
+      console.log("🔄 PASO 2: Habilitando encuesta...");
+      const datosHabilitados = {
+        ...encuesta,
+        estado: 'habilitada'
+      };
+      
+      console.log("📤 Datos para habilitar:", datosHabilitados);
+      await updateEncuesta(idEncuesta, datosHabilitados);
+      console.log("✅ Encuesta habilitada exitosamente");
+      
+      console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
+      
+      console.log("✅ Restaurar completado exitosamente");
+      alert("Encuesta restaurada y habilitada correctamente");
     } catch (error) {
+      console.error("❌ Error en handleRestaurar:", error);
       alert(error.message);
     }
   };
@@ -244,67 +299,9 @@ const EncuestDashboards = () => {
           </p>
         </div>
 
-        {/* Botones temporales para mostrar los modales */}
-        <div className="flex gap-4 mb-6">
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded shadow"
-            onClick={() => setShowPreguntasModal(true)}
-          >
-            Ver Modal de Preguntas
-          </button>
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded shadow"
-            onClick={() => setShowChartModal(true)}
-          >
-            Ver Modal de Gráfica
-          </button>
-        </div>
+        
 
-        {/* Modales temporales */}
-        {showPreguntasModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-xl relative">
-              <button
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
-                onClick={() => setShowPreguntasModal(false)}
-              >
-                ×
-              </button>
-              <h2 className="text-xl font-bold mb-4 text-orange-600">{encuestaEjemplo.titulo}</h2>
-              <p className="text-gray-600 mb-2">{encuestaEjemplo.descripcion}</p>
-              <div className="flex flex-col gap-4 mt-2">
-                {encuestaEjemplo.secciones.map(sec => (
-                  <div key={sec.idSeccion} className="border rounded-lg p-3 bg-gray-50">
-                    <h3 className="font-semibold text-orange-500 mb-1">{sec.titulo}</h3>
-                    <p className="text-sm text-gray-500 mb-2">{sec.descripcion}</p>
-                    <ul className="list-disc ml-5">
-                      {sec.preguntas.map(preg => (
-                        <li key={preg.idPregunta} className="mb-2">
-                          <span className="font-medium text-gray-800">{preg.textoPregunta}</span>
-                          <span className="text-xs text-gray-500 ml-2">({preg.ayuda})</span>
-                          <button
-                            className="ml-4 px-2 py-1 bg-green-500 text-white rounded text-xs"
-                            onClick={() => {
-                              setShowPreguntasModal(false);
-                              setShowChartModal(true);
-                            }}
-                          >Ver gráfica</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        {showChartModal && (
-          <QuestionChartModal
-            open={showChartModal}
-            onClose={() => setShowChartModal(false)}
-            pregunta={ejemploPregunta}
-          />
-        )}
+        
 
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 md:gap-8 items-start max-w-full">
           {/* Sidebar izquierdo con tarjetas de estadísticas */}
@@ -336,16 +333,31 @@ const EncuestDashboards = () => {
               </div>
             </div>
 
-            <EncuestList 
-              encuestas={listaDeEncuestas}
-              onSoftDelete={handleSoftDelete}
-              onRestaurar={handleRestaurar}
-              onDelete={handleDelete}
-              onCambiarEstado={handleCambiarEstado}
-              loading={loading}
-              error={error}
-              showDeleted={showDeleted}
-            />
+                         {encuestas.length === 0 && !loading ? (
+               <div className="text-center py-12">
+                 <div className="text-gray-400 text-6xl mb-4">📭</div>
+                 <h3 className="text-lg font-medium text-gray-900 mb-2">
+                   {showDeleted ? 'Papelera vacía' : 'No hay encuestas activas'}
+                 </h3>
+                 <p className="text-gray-500">
+                   {showDeleted 
+                     ? 'No hay encuestas eliminadas en la papelera.' 
+                     : 'No hay encuestas activas disponibles en este momento.'
+                   }
+                 </p>
+               </div>
+             ) : (
+               <EncuestList 
+                 encuestas={listaDeEncuestas}
+                 onSoftDelete={handleSoftDelete}
+                 onRestaurar={handleRestaurar}
+                 onDelete={handleDelete}
+                 onCambiarEstado={handleCambiarEstado}
+                 loading={loading}
+                 error={error}
+                 showDeleted={showDeleted}
+               />
+             )}
           </div>
         </div>
       </div>

@@ -12,22 +12,55 @@ function authHeaders(extra = {}) {
 
 // 🔹 LISTAR TODAS (para admins/estadísticas)
 export async function getTodasLasEncuestas() {
+  console.log("🔹 getTodasLasEncuestas - llamando endpoint:", `${API_BASE}/master`);
+  
   const response = await fetch(`${API_BASE}/master`, {
     method: "GET",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
-  if (!response.ok) throw new Error("Error al obtener todas las encuestas");
-  return response.json();
+  
+  console.log("🔹 getTodasLasEncuestas - response status:", response.status);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("🔹 getTodasLasEncuestas - error response:", errorText);
+    throw new Error(`Error al obtener todas las encuestas: ${response.status} - ${errorText}`);
+  }
+  
+  const data = await response.json();
+  console.log("🔹 getTodasLasEncuestas - datos recibidos:", data);
+  
+  return data;
 }
 
 // 🔹 LISTAR ENCUESTAS ELIMINADAS (para papelera)
 export async function getEncuestasEliminadas() {
+  console.log("🔹 getEncuestasEliminadas - llamando endpoint:", `${API_BASE}/deleted`);
+  
   const response = await fetch(`${API_BASE}/deleted`, {
     method: "GET",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
-  if (!response.ok) throw new Error("Error al obtener encuestas eliminadas");
-  return response.json();
+  
+  console.log("🔹 getEncuestasEliminadas - response status:", response.status);
+  
+  if (!response.ok) {
+    // Si es 404 (no hay encuestas eliminadas), devolver lista vacía
+    if (response.status === 404) {
+      console.log("🔹 getEncuestasEliminadas - no hay encuestas eliminadas, devolviendo lista vacía");
+      return [];
+    }
+    
+    // Para otros errores, lanzar excepción
+    const errorText = await response.text();
+    console.error("🔹 getEncuestasEliminadas - error response:", errorText);
+    throw new Error(`Error al obtener encuestas eliminadas: ${response.status} - ${errorText}`);
+  }
+  
+  const data = await response.json();
+  console.log("🔹 getEncuestasEliminadas - datos recibidos:", data);
+  
+  return data;
 }
 
 // 🔹 LISTAR SOLO HABILITADAS (para alumnos)
@@ -73,12 +106,23 @@ export async function createEncuesta({ titulo, descripcion, idDepartamento, fech
 
 // 🔹 ACTUALIZAR ENCUESTA
 export async function updateEncuesta(idEncuesta, { titulo, descripcion, idDepartamento, fechaInicio, fechaFin, estado }) {
+  console.log("🔹 updateEncuesta - llamando endpoint:", `${API_BASE}/${idEncuesta}`);
+  console.log("🔹 updateEncuesta - datos a enviar:", { titulo, descripcion, idDepartamento, fechaInicio, fechaFin, estado });
+  
   const response = await fetch(`${API_BASE}/${idEncuesta}`, {
     method: "PUT",
     headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ titulo, descripcion, idDepartamento, fechaInicio, fechaFin, estado }),
   });
-  if (!response.ok) throw new Error("Error al actualizar encuesta");
+  
+  console.log("🔹 updateEncuesta - response status:", response.status);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("🔹 updateEncuesta - error response:", errorText);
+    throw new Error(`Error al actualizar encuesta: ${response.status} - ${errorText}`);
+  }
+  
   return response.json();
 }
 
@@ -94,21 +138,41 @@ export async function deleteEncuesta(idEncuesta) {
 
 // 🔹 SOFT DELETE ENCUESTA
 export async function softDeleteEncuesta(idEncuesta) {
+  console.log("🔹 softDeleteEncuesta - llamando endpoint:", `${API_BASE}/${idEncuesta}/soft-delete`);
+  
   const response = await fetch(`${API_BASE}/${idEncuesta}/soft-delete`, {
     method: "PATCH",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
-  if (!response.ok) throw new Error("Error al hacer soft delete");
+  
+  console.log("🔹 softDeleteEncuesta - response status:", response.status);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("🔹 softDeleteEncuesta - error response:", errorText);
+    throw new Error(`Error al hacer soft delete: ${response.status} - ${errorText}`);
+  }
+  
   return {};
 }
 
 // 🔹 RESTAURAR ENCUESTA
 export async function restaurarEncuesta(idEncuesta) {
+  console.log("🔹 restaurarEncuesta - llamando endpoint:", `${API_BASE}/${idEncuesta}/restaurar`);
+  
   const response = await fetch(`${API_BASE}/${idEncuesta}/restaurar`, {
     method: "PATCH",
     headers: authHeaders({ "Content-Type": "application/json" }),
   });
-  if (!response.ok) throw new Error("Error al restaurar encuesta");
+  
+  console.log("🔹 restaurarEncuesta - response status:", response.status);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("🔹 restaurarEncuesta - error response:", errorText);
+    throw new Error(`Error al restaurar encuesta: ${response.status} - ${errorText}`);
+  }
+  
   return {};
 }
 
@@ -140,11 +204,38 @@ export async function cambiarEstadoEncuesta(idEncuesta, nuevoEstado) {
 
 // Estados válidos para encuestas
 export const ESTADOS_ENCUESTA = {
-  HABILITADA: "habilitada",
-  DESHABILITADA: "deshabilitada",
+  ACTIVA: "activa",
+  INACTIVA: "inactiva",
   CERRADA: "cerrada"
 };
 
 export function isValidEstado(estado) {
   return Object.values(ESTADOS_ENCUESTA).includes(estado);
+}
+
+// 🔹 FUNCIÓN DE PRUEBA PARA VERIFICAR CONECTIVIDAD
+export async function testBackendConnection() {
+  console.log("🔹 testBackendConnection - verificando conectividad con:", API_BASE);
+  
+  try {
+    const response = await fetch(`${API_BASE}/master`, {
+      method: "GET",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+    });
+    
+    console.log("🔹 testBackendConnection - response status:", response.status);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log("🔹 testBackendConnection - datos recibidos:", data);
+      return { success: true, data };
+    } else {
+      const errorText = await response.text();
+      console.error("🔹 testBackendConnection - error response:", errorText);
+      return { success: false, error: errorText, status: response.status };
+    }
+  } catch (error) {
+    console.error("🔹 testBackendConnection - error de red:", error);
+    return { success: false, error: error.message };
+  }
 }
