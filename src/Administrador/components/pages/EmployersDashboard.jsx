@@ -132,7 +132,6 @@ const EmployersDashboard = () => {
   };
 
   const handleDelete = async (idUsuario) => {
-<<<<<<< HEAD
     const prevLength = usuarios.length;
     try {
       await eliminarUsuario(idUsuario).catch(e => {
@@ -154,14 +153,6 @@ const EmployersDashboard = () => {
       }, 500);
     } catch (e) {
       alert("Error al eliminar usuario: " + (e?.message || e));
-=======
-    try {
-      await eliminarUsuario(idUsuario);
-      setUsuarios((prev) => prev.filter((u) => u.idUsuario !== idUsuario));
-      await fetchEstadisticas();
-    } catch (error) {
-      window.showAlert(error.message, "error");
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
     }
   };
 

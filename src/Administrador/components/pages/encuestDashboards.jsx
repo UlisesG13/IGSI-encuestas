@@ -138,22 +138,18 @@ const EncuestDashboards = () => {
   // 🔹 Handlers CRUD y de estado
   const handleSoftDelete = async (idEncuesta) => {
     try {
-<<<<<<< HEAD
       console.log("🔹 handleSoftDelete llamado con id:", idEncuesta);
       
       // Obtener la encuesta antes del soft-delete
-=======
       // Primero hacer soft-delete
       await softDeleteEncuesta(idEncuesta);
       // Luego cambiar el estado a inactiva
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (!encuesta) {
         console.log("❌ No se encontró la encuesta con id:", idEncuesta);
         alert("No se encontró la encuesta en la lista local");
         return;
       }
-<<<<<<< HEAD
       
       console.log("📋 Encuesta encontrada:", encuesta);
       
@@ -189,19 +185,11 @@ const EncuestDashboards = () => {
     } catch (error) {
       console.error("❌ Error en handleSoftDelete:", error);
       alert(`Error al eliminar encuesta: ${error.message}`);
-=======
-      await fetchEncuestas();
-      await fetchEstadisticas();
-      window.showAlert('Encuesta movida a la papelera correctamente', 'success');
-    } catch (error) {
-      window.showAlert(error.message, "error");
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
     }
   };
 
   const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
     try {
-<<<<<<< HEAD
       console.log("🔹 handleCambiarEstado llamado con id:", idEncuesta, "nuevo estado:", nuevoEstado);
       
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
@@ -226,11 +214,6 @@ const EncuestDashboards = () => {
       if (nuevoEstado === 'inactiva') estadoBackend = 'deshabilitada';
       
       const datosActualizados = {
-=======
-      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-      if (!encuesta) return;
-      await updateEncuesta(idEncuesta, {
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
         ...encuesta,
         estado: estadoBackend
       };
@@ -242,17 +225,11 @@ const EncuestDashboards = () => {
       console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
-<<<<<<< HEAD
       
       console.log("✅ Cambio de estado completado exitosamente");
     } catch (error) {
       console.error("❌ Error en handleCambiarEstado:", error);
       alert(error.message);
-=======
-      window.showAlert('Estado de la encuesta actualizado correctamente', 'success');
-    } catch (error) {
-      window.showAlert(error.message, "error");
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
     }
   };
 
@@ -294,18 +271,12 @@ const EncuestDashboards = () => {
       console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
-<<<<<<< HEAD
       
       console.log("✅ Restaurar completado exitosamente");
       alert("Encuesta restaurada y habilitada correctamente");
     } catch (error) {
       console.error("❌ Error en handleRestaurar:", error);
       alert(error.message);
-=======
-      window.showAlert('Encuesta restaurada correctamente', 'success');
-    } catch (error) {
-      window.showAlert(error.message, "error");
->>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
     }
   };
 
