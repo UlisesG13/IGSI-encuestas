@@ -7,8 +7,6 @@ import SidebarActions from "../molecule/SidebarActions";
 import SurveyTable from "../organism/SurveyTable";
 import {
   getEncuestasByDepartamento,
-  getEncuestasEliminadas,
-  updateEncuesta,
   softDeleteEncuesta,
   restaurarEncuesta,
   deleteEncuesta,
