@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import AlertContainer from '../molecule/AlertContainer.jsx';
 import Header from "../organism/Header.jsx";
 import { useNavigate } from "react-router-dom";
 import { getEncuestas } from "../../../Shared/services/encuestasService.jsx";
@@ -16,7 +17,10 @@ export default function FormsAlumn() {
         const data = await getEncuestas();
         if (isMounted) setSurveys(data.filter(e => !e.deleted));
       } catch (err) {
-        if (isMounted) setError("No se pudieron cargar las encuestas");
+        if (isMounted) {
+          setError("No se pudieron cargar las encuestas");
+          window.showAlert("No se pudieron cargar las encuestas", "error");
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -30,6 +34,7 @@ export default function FormsAlumn() {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen flex justify-center items-start pt-8">
+      <AlertContainer />
       <div className="bg-white rounded-xl shadow-sm w-11/12 max-w-6xl mx-auto p-8 md:p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6">Encuestas</h2>
         {loading && <div className="text-gray-500">Cargando encuestas...</div>}

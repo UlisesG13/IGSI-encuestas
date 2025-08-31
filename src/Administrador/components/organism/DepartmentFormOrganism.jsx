@@ -21,14 +21,14 @@ const DepartmentFormOrganism = ({ onCreate }) => {
   const handleSubmit = async () => {
     // Validación básica
     if (!formData.nombre.trim() || !formData.descripcion.trim()) {
-      alert('Por favor, completa todos los campos');
+      window.showAlert('Por favor, completa todos los campos', 'error');
       return;
     }
 
     if (onCreate) {
       await onCreate({ nombre: formData.nombre, descripcion: formData.descripcion });
+      window.showAlert('Departamento registrado exitosamente', 'success');
     }
-    
     // Limpiar formulario
     setFormData({
       nombre: '',

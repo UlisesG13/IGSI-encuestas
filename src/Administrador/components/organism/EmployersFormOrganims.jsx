@@ -20,14 +20,14 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
   const handleSubmit = async () => {
     // Validación básica
     if (!formData.nombre.trim() || !formData.correo.trim() || !formData.contraseña.trim() || !formData.rol.trim() || !formData.departamento.trim()) {
-      alert('Por favor, completa todos los campos');
+      window.showAlert('Por favor, completa todos los campos', 'error');
       return;
     }
 
     if (onCreate) {
       await onCreate({ ...formData });
+      window.showAlert('Empleado registrado exitosamente', 'success');
     }
-    
     // Limpiar formulario
     setFormData({
       nombre: '',

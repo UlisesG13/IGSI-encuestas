@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "../organism/Header";
+import AlertContainer from "../../../Shared/components/molecule/AlertContainer";
 import DashboardCards from "../molecule/DashboardCards";
 import EmployersList from "../organism/EmployersList";
 import EmployersFormOrganism from "../organism/EmployersFormOrganims";
@@ -39,6 +40,7 @@ const EmployersDashboard = () => {
       setUsuarios(Array.isArray(data) ? data : []);
     } catch (e) {
       setError("No se pudieron cargar los usuarios");
+      window.showAlert("No se pudieron cargar los usuarios", "error");
     } finally {
       setLoading(false);
     }
@@ -130,6 +132,7 @@ const EmployersDashboard = () => {
   };
 
   const handleDelete = async (idUsuario) => {
+<<<<<<< HEAD
     const prevLength = usuarios.length;
     try {
       await eliminarUsuario(idUsuario).catch(e => {
@@ -151,11 +154,20 @@ const EmployersDashboard = () => {
       }, 500);
     } catch (e) {
       alert("Error al eliminar usuario: " + (e?.message || e));
+=======
+    try {
+      await eliminarUsuario(idUsuario);
+      setUsuarios((prev) => prev.filter((u) => u.idUsuario !== idUsuario));
+      await fetchEstadisticas();
+    } catch (error) {
+      window.showAlert(error.message, "error");
+>>>>>>> a332c5e09447cef692d262e9435ba84e117e3b3d
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <AlertContainer />
       <Header />
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">

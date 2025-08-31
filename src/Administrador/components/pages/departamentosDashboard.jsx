@@ -1,4 +1,5 @@
 import Header from "../organism/Header";
+import AlertContainer from "../../../Shared/components/molecule/AlertContainer";
 import DashboardCards from "../molecule/DashboardCards";
 import DepartamentsList from "../organism/DepartamentsList";
 import DepartmentFormOrganism from "../organism/DepartmentFormOrganism";
@@ -37,6 +38,7 @@ const DepartamentosDashboard = () => {
       setDepartamentos(Array.isArray(data) ? data : []);
     } catch (e) {
       setError("No se pudieron cargar los departamentos");
+      window.showAlert("No se pudieron cargar los departamentos", "error");
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,7 @@ const DepartamentosDashboard = () => {
       await fetchDepartamentos();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
@@ -113,12 +115,13 @@ const DepartamentosDashboard = () => {
       await fetchDepartamentos();
       await fetchEstadisticas();
     } catch (error) {
-      alert(error.message);
+      window.showAlert(error.message, "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <AlertContainer />
       <Header />
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">
