@@ -11,8 +11,10 @@ import {
   updateEncuesta,
   softDeleteEncuesta,
   restaurarEncuesta,
-  deleteEncuesta
-} from "../../services/encuestasService";
+  deleteEncuesta,
+  updateEncuesta,
+  getEncuestasDeleted,
+} from "../../../Shared/services/encuestasService";
 
 const TABS = [
   { key: "activas", label: "Encuestas activas" },
@@ -99,6 +101,23 @@ const EncuestList = () => {
   }, [tab, idDepartamento]);
 
 
+  const fetchEncuestasDeleted = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getEncuestasDeleted(); // llamamos al service para encuestas eliminadas
+      setEncuestas(data);
+    } catch (err) {
+      setError("Error al cargar encuestas eliminadas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtrar encuestas según tab
+  const encuestasActivas = encuestas.filter(e => !e.deleted);
+  const encuestasEliminadas = encuestas.filter(e => e.deleted);
+
   // Acciones
   const handleSoftDelete = async (idEncuesta) => {
     const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
@@ -124,19 +143,22 @@ const EncuestList = () => {
   };
   const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
     const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta || encuesta.deleted) return;
-    let estadoBackend = nuevoEstado;
-    if (nuevoEstado === "activa") estadoBackend = "habilitada";
-    if (nuevoEstado === "inactiva") estadoBackend = "deshabilitada";
-    await updateEncuesta(idEncuesta, { ...encuesta, estado: estadoBackend });
-    // Refrescar encuestas
-    if (idDepartamento) {
-      if (tab === "papelera") {
-        setEncuestas(await getEncuestasEliminadas(idDepartamento));
-      } else {
-        setEncuestas(await getEncuestasByDepartamento(idDepartamento));
-      }
-    }
+    if (!encuesta) return;
+    await updateEncuesta(idEncuesta, {
+      ...encuesta,
+      estado: "deshabilitada"
+    });
+    fetchEncuestas();
+    setSelectedSurvey(null);
+  };
+  const handleHabilitar = async (idEncuesta) => {
+    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+    if (!encuesta) return;
+    await updateEncuesta(idEncuesta, {
+      ...encuesta,
+      estado: "habilitada"
+    });
+    fetchEncuestas();
     setSelectedSurvey(null);
   };
 
@@ -182,7 +204,13 @@ const EncuestList = () => {
             <button
               key={t.key}
               className={`px-4 py-2 rounded-t font-semibold border-b-2 transition-colors duration-150 ${tab === t.key ? 'border-orange-500 text-orange-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-orange-600'}`}
-              onClick={() => { setTab(t.key); setSelectedSurvey(null); }}
+              onClick={async () => {
+                setTab(t.key);
+                setSelectedSurvey(null);
+                // Traemos encuestas según tab
+                if (t.key === "activas") await fetchEncuestas();
+                if (t.key === "papelera") await fetchEncuestasDeleted();
+              }}
             >
               {t.label}
             </button>
@@ -195,30 +223,15 @@ const EncuestList = () => {
           <div className="flex-1">
             {loading ? (
               <div className="text-center py-12 text-orange-600">Cargando encuestas...</div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-600">{error}</div>
             ) : (
-              surveys.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-6xl mb-4">📭</div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {tab === 'papelera' ? 'Papelera vacía' : 'No hay encuestas registradas'}
-                  </h3>
-                  <p className="text-gray-500">
-                    {tab === 'papelera' 
-                      ? 'No hay encuestas eliminadas en la papelera.' 
-                      : 'No hay encuestas activas disponibles en este momento.'}
-                  </p>
-                </div>
-              ) : error ? (
-                <div className="text-center py-12 text-red-600">{error}</div>
-              ) : (
-                <SurveyTable 
-                  surveys={surveys} 
-                  selectedSurvey={selectedSurvey}
-                  onSurveySelect={handleSurveySelect}
-                  tab={tab}
-                  departamento={departamento}
-                />
-              )
+              <SurveyTable
+                surveys={surveys}
+                selectedSurvey={selectedSurvey}
+                onSurveySelect={handleSurveySelect}
+                tab={tab}
+              />
             )}
           </div>
         </div>
