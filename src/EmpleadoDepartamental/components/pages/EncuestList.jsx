@@ -12,6 +12,7 @@ import {
   deleteEncuesta,
   updateEncuesta,
   getEncuestasDeleted,
+  getEncuestasByDepartamento
 } from "../../../Shared/services/encuestasService";
 
 const TABS = [
@@ -36,6 +37,7 @@ const EncuestList = () => {
         const payload = parseJwt(token);
         if (payload && payload.sub) {
           const usuario = await getUsuarioByCorreo(payload.sub);
+          console.log(usuario);
           setIdDepartamento(usuario.idDepartamento);
 
           let nombreDepto = usuario.departamentoNombre || usuario.nombreDepartamento || "";
@@ -56,6 +58,7 @@ const EncuestList = () => {
 
   // ✅ función única para traer encuestas
   const fetchEncuestas = useCallback(async () => {
+    if (!idDepartamento) return; // 👈 evita llamar con null/undefined
     setLoading(true);
     setError(null);
     try {
@@ -63,23 +66,24 @@ const EncuestList = () => {
       if (tab === "papelera") {
         data = await getEncuestasDeleted();
       } else {
-        // 🔥 Ahora trae todas las encuestas, no solo por depto
-        data = await getEncuestas();
+        data = await getEncuestasByDepartamento(idDepartamento);
+        console.log("Encuestas del departamento", idDepartamento, data);
       }
       setEncuestas(Array.isArray(data) ? data : []);
-      setError(null);
     } catch (err) {
-      setError("Ocurrió un error inesperado al cargar las encuestas");
+      setError("Ninguna encuesta encontrada");
       setEncuestas([]);
     } finally {
       setLoading(false);
     }
-  }, [tab]);
+  }, [tab, idDepartamento]); // 👈 ahora depende también de idDepartamento
+  
 
   // Cargar encuestas cuando cambia el tab
   useEffect(() => {
     fetchEncuestas();
   }, [tab, fetchEncuestas]);
+  
 
   // Acciones
   const handleSoftDelete = async (idEncuesta) => {
