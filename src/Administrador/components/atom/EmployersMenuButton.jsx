@@ -23,7 +23,7 @@ const EmployersMenuButton = ({ idEmpleado, onEdit, onDelete, departamentos = [],
         nombre: empleadoData.nombre || '',
         correo: empleadoData.correo || '',
         contraseña: '',
-        rol: 'empleado',
+        rol: empleadoData.rol || 'empleado',
         departamento: empleadoData.idDepartamento?.toString() || ''
       });
     }
