@@ -47,10 +47,11 @@ export default function Login() {
       const token = localStorage.getItem("token");
       if (token) {
         const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log(payload);
         if (payload.rol === "AdminGeneral") {
           navigate("/");
-        } else if (payload.rol === "AdminDepartamental") {
-          navigate("/crearEncuestas");
+        } else if (payload.rol === "Empleado") {
+          navigate("/encuestasLista");
         } else {
           navigate("/dashboardAlumnos");
         }

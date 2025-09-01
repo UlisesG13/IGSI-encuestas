@@ -106,18 +106,23 @@ const EmployersDashboard = () => {
     }));
   }, [usuarios, departamentos]);
 
-  // 🔹 Handlers CRUD
-  const handleCreate = async ({ nombre, correo, contraseña, departamento }) => {
-    await crearUsuario({
-      nombre,
-      correo,
-      password: contraseña,
-      rol: "empleado", // Siempre empleado
-      idDepartamento: Number(departamento) || 0,
-    });
-    await fetchUsuarios();
-    await fetchEstadisticas();
-  };
+  // 🔹 Crear usuario (con refresh y alert)
+const handleCreate = async (data) => {
+  try {
+    await crearUsuario(data);
+    await fetchUsuarios();     // ✅ refresca lista
+    await fetchEstadisticas(); // ✅ refresca estadísticas
+    window.showAlert("Empleado registrado exitosamente", "success");
+  } catch (error) {
+    const backendMsg = error?.response?.data?.message || error?.message;
+    const mensaje =
+      backendMsg === "Nombre, correo y contraseña son obligatorios"
+        ? "Nombre, correo y contraseña son obligatorios"
+        : backendMsg || "Error al crear usuario";
+    window.showAlert(mensaje, "error");
+    throw error;
+  }
+};
 
   const handleEdit = async (idUsuario, { nombre, correo, contraseña, rol, departamento }) => {
     await actualizarUsuario(idUsuario, {
@@ -212,7 +217,7 @@ const EmployersDashboard = () => {
           
           {/* Formulario de nuevo empleado */}
           <div className="flex flex-col gap-4 md:gap-6 order-3">
-            <EmployersFormOrganism onCreate={handleCreateEmployer} departamentos={departamentos} />
+            <EmployersFormOrganism onCreate={handleCreate} departamentos={departamentos} />
           </div>
         </div>
       </div>

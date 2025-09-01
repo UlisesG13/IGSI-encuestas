@@ -4,8 +4,8 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     correo: '',
-    contraseña: '',
-    departamento: ''
+    password: '',       // ✅ backend espera "password"
+    idDepartamento: ''  // ✅ backend espera "idDepartamento"
   });
 
   const handleInputChange = (e) => {
@@ -24,12 +24,12 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
         setFormData({
           nombre: '',
           correo: '',
-          contraseña: '',
-          departamento: ''
+          password: '',
+          idDepartamento: ''
         });
       } catch (error) {
-        // Quita esta línea:
-        // window.showAlert('Error al crear el usuario', 'error');
+        // Aquí podrías mostrar el mensaje real de error si quieres
+        // window.showAlert(error.message || 'Error al crear el usuario', 'error');
       }
     }
   };
@@ -72,10 +72,10 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
           <label className="text-sm font-medium text-gray-700">Contraseña</label>
           <input
             className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder-gray-400 text-gray-700 bg-white"
-            name="contraseña"
+            name="password"   // ✅ ahora coincide con backend
             type="password"
             placeholder="password"
-            value={formData.contraseña}
+            value={formData.password}
             onChange={handleInputChange}
           />
         </div>
@@ -85,11 +85,13 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
           <label className="text-sm font-medium text-gray-700">Departamento</label>
           <select
             className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-700 bg-white cursor-pointer"
-            name="departamento"
-            value={formData.departamento}
+            name="idDepartamento"   // ✅ ahora coincide con backend
+            value={formData.idDepartamento}
             onChange={handleInputChange}
           >
-            <option value="" disabled className="text-gray-400">Selecciona un departamento</option>
+            <option value="" disabled className="text-gray-400">
+              Selecciona un departamento
+            </option>
             {departamentos.map(dept => (
               <option key={dept.idDepartamento} value={dept.idDepartamento}>
                 {dept.nombre}
