@@ -165,7 +165,8 @@ const EmployersDashboard = () => {
   const handleCreateEmployer = async (data) => {
     try {
       await crearUsuario(data);
-      // ...otros fetch si necesitas...
+      await fetchUsuarios();
+      await fetchEstadisticas();
     } catch (error) {
       const backendMsg = error?.response?.data?.message || error?.message;
       const mensaje = backendMsg === "Nombre, correo y contraseña son obligatorios"

@@ -1,4 +1,10 @@
-const API_BASE_URL = '/api';
+import { getToken } from "../../Shared/services/authService.jsx";
+
+const API_BASE_URL = "http://localhost:8080/api";
+
+function authHeaders(extra = {}) {
+  return { ...extra, Authorization: `Bearer ${getToken()}` };
+}
 
 export const encuestasService = {
   /**
@@ -10,11 +16,7 @@ export const encuestasService = {
     try {
       const response = await fetch(`${API_BASE_URL}/encuestas/${idEncuesta}/completa`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // Aquí puedes agregar headers de autenticación si es necesario
-          // 'Authorization': `Bearer ${token}`
-        }
+        headers: authHeaders({ 'Content-Type': 'application/json' })
       });
 
       if (!response.ok) {
@@ -22,6 +24,7 @@ export const encuestasService = {
       }
 
       const data = await response.json();
+      console.log(data)
       return data;
     } catch (error) {
       console.error('Error al obtener la encuesta completa:', error);

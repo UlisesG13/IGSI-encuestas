@@ -1,10 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 
 const CloseSesionButton = () => {
-  const handleClick = () => {
-    alert("Cerrar sesión");
-  };
+  const navigate = useNavigate();
+    const handleClick = () => {
+      navigate("/login");
+    };
 
   return (
     <button

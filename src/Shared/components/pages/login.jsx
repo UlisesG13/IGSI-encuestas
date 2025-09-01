@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Facebook, Instagram, Twitter } from "lucide-react";
 import logoIGSI from '../../../assets/logoIGSI.png';
 import imgLogin from '../../../assets/imgLogin.webp';
 import { login as loginApi } from '../../services/authService';
 
 export default function Login() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -49,13 +49,13 @@ export default function Login() {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.rol === "AdminGeneral") {
           navigate("/");
-        } else if (payload.rol === "AdminDepartamental") {
-          navigate("/crearEncuestas");
+        } else if (payload.rol === "Empleado") {
+          navigate("/encuestasLista");
         } else {
-          navigate("/dashboardAlumnos");
+          navigate("/login");
         }
       } else {
-        navigate("/login");
+        navigate("/dashboardAlumnos");
       }
     } catch (error) {
       setApiError(error.message || "Error al iniciar sesión");
