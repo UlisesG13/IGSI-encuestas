@@ -5,7 +5,6 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
     nombre: '',
     correo: '',
     contraseña: '',
-    rol: '',
     departamento: ''
   });
 
@@ -18,24 +17,21 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
   };
 
   const handleSubmit = async () => {
-    // Validación básica
-    if (!formData.nombre.trim() || !formData.correo.trim() || !formData.contraseña.trim() || !formData.rol.trim() || !formData.departamento.trim()) {
-      window.showAlert('Por favor, completa todos los campos', 'error');
-      return;
-    }
-
     if (onCreate) {
-      await onCreate({ ...formData });
-      window.showAlert('Empleado registrado exitosamente', 'success');
+      try {
+        await onCreate({ ...formData, rol: "empleado" });
+        window.showAlert('Empleado registrado exitosamente', 'success');
+        setFormData({
+          nombre: '',
+          correo: '',
+          contraseña: '',
+          departamento: ''
+        });
+      } catch (error) {
+        // Quita esta línea:
+        // window.showAlert('Error al crear el usuario', 'error');
+      }
     }
-    // Limpiar formulario
-    setFormData({
-      nombre: '',
-      correo: '',
-      contraseña: '',
-      rol: '',
-      departamento: ''
-    });
   };
 
   return (
@@ -82,21 +78,6 @@ const EmployersFormOrganism = ({ onCreate, departamentos = [] }) => {
             value={formData.contraseña}
             onChange={handleInputChange}
           />
-        </div>
-
-        {/* Campo Rol */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">Rol</label>
-          <select
-            className="w-full px-3 py-3 border border-gray-300 rounded-md text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-700 bg-white cursor-pointer"
-            name="rol"
-            value={formData.rol}
-            onChange={handleInputChange}
-          >
-            <option value="" disabled className="text-gray-400">Selecciona un rol</option>
-            <option value="AdminGeneral">Administrador</option>
-            <option value="Empleado">Empleado departamental</option>
-          </select>
         </div>
 
         {/* Campo Departamento */}

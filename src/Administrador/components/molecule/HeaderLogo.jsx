@@ -6,7 +6,7 @@ const HeaderLogo = () => {
     <div className="flex items-center gap-4 flex-col">
         <Logo width={250} height={120} />
         <div className="mt-2 mb-1">
-          <NavButton name="Inicio" to="/" />
+          <NavButton name="Departamentos" to="/" />
           <NavButton name="Encuestas" to="/encuestas" />
           <NavButton name="Empleados" to="/empleados" />
 

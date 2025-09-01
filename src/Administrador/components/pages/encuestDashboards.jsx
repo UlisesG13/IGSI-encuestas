@@ -15,7 +15,6 @@ import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
 import { getEstadisticasDepartamentos } from "../../services/departamentosService";
 
 const EncuestDashboards = () => {
-
   const titulo = "Dashboard de Encuestas";
   const [encuestas, setEncuestas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +25,15 @@ const EncuestDashboards = () => {
     encuestas: 0,
     empleados: 0
   });
+  const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
+  // Función para mostrar alerta
+  const showAlert = (message, type = 'success', duration = 2500) => {
+    setAlert({ show: true, type, message });
+    setTimeout(() => {
+      setAlert({ show: false, type: '', message: '' });
+    }, duration);
+  };
 
   // 🔹 Fetch de todas las encuestas
   const fetchEncuestas = async () => {
@@ -139,52 +147,44 @@ const EncuestDashboards = () => {
   const handleSoftDelete = async (idEncuesta) => {
     try {
       console.log("🔹 handleSoftDelete llamado con id:", idEncuesta);
-      
+
       // Obtener la encuesta antes del soft-delete
-      // Primero hacer soft-delete
-      await softDeleteEncuesta(idEncuesta);
-      // Luego cambiar el estado a inactiva
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (!encuesta) {
-        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
-        alert("No se encontró la encuesta en la lista local");
+        showAlert("No se encontró la encuesta en la lista local", "error");
         return;
       }
-      
-      console.log("📋 Encuesta encontrada:", encuesta);
-      
+
       // Verificar que la encuesta no esté eliminada
       if (encuesta.deleted) {
-        console.log("⚠️ La encuesta ya está eliminada");
-        alert("La encuesta ya está eliminada");
+        showAlert("La encuesta ya está eliminada", "warning");
         return;
       }
-      
+
       // PASO 1: Deshabilitar la encuesta primero
       console.log("🔄 PASO 1: Deshabilitando encuesta...");
       const datosDeshabilitados = {
         ...encuesta,
         estado: 'deshabilitada'
       };
-      
+
       console.log("📤 Datos para deshabilitar:", datosDeshabilitados);
       await updateEncuesta(idEncuesta, datosDeshabilitados);
       console.log("✅ Encuesta deshabilitada exitosamente");
-      
-             // PASO 2: Hacer soft-delete
-       console.log("🔄 PASO 2: Ejecutando soft-delete...");
-       await softDeleteEncuesta(idEncuesta);
-      
+
+      // PASO 2: Hacer soft-delete
+      console.log("🔄 PASO 2: Ejecutando soft-delete...");
+      await softDeleteEncuesta(idEncuesta);
+
       // Recargar la lista inmediatamente
       console.log("🔄 Recargando datos...");
       await fetchEncuestas();
       await fetchEstadisticas();
-      
+
       console.log("✅ Soft-delete completado exitosamente");
-      alert("Encuesta deshabilitada y eliminada correctamente");
+      showAlert("Encuesta deshabilitada y eliminada correctamente", "success");
     } catch (error) {
-      console.error("❌ Error en handleSoftDelete:", error);
-      alert(`Error al eliminar encuesta: ${error.message}`);
+      showAlert(`Error al eliminar encuesta: ${error.message}`, "error");
     }
   };
 
@@ -194,7 +194,7 @@ const EncuestDashboards = () => {
       
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (!encuesta) {
-        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
+        showAlert("No se encontró la encuesta en la lista local", "error");
         return;
       }
       
@@ -203,8 +203,7 @@ const EncuestDashboards = () => {
       
       // Verificar que la encuesta no esté eliminada antes de actualizar
       if (encuesta.deleted) {
-        console.log("⚠️ La encuesta está marcada como eliminada, no se puede actualizar");
-        alert("No se puede actualizar una encuesta eliminada");
+        showAlert("No se puede actualizar una encuesta eliminada", "warning");
         return;
       }
       
@@ -227,9 +226,9 @@ const EncuestDashboards = () => {
       await fetchEstadisticas();
       
       console.log("✅ Cambio de estado completado exitosamente");
+      showAlert("Estado actualizado correctamente", "success");
     } catch (error) {
-      console.error("❌ Error en handleCambiarEstado:", error);
-      alert(error.message);
+      showAlert(error.message, "error");
     }
   };
 
@@ -239,7 +238,7 @@ const EncuestDashboards = () => {
       
       const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
       if (!encuesta) {
-        console.log("❌ No se encontró la encuesta con id:", idEncuesta);
+        showAlert("No se encontró la encuesta en la lista local", "error");
         return;
       }
       
@@ -247,8 +246,7 @@ const EncuestDashboards = () => {
       
       // Verificar que la encuesta esté eliminada
       if (!encuesta.deleted) {
-        console.log("⚠️ La encuesta no está eliminada");
-        alert("La encuesta no está eliminada");
+        showAlert("La encuesta no está eliminada", "warning");
         return;
       }
       
@@ -273,29 +271,28 @@ const EncuestDashboards = () => {
       await fetchEstadisticas();
       
       console.log("✅ Restaurar completado exitosamente");
-      alert("Encuesta restaurada y habilitada correctamente");
+      showAlert("Encuesta restaurada y habilitada correctamente", "success");
     } catch (error) {
-      console.error("❌ Error en handleRestaurar:", error);
-      alert(error.message);
+      showAlert(error.message, "error");
     }
   };
 
   const handleDelete = async (idEncuesta) => {
     try {
-      const confirmDelete = confirm('¿Eliminar permanentemente esta encuesta?');
+      const confirmDelete = window.confirm('¿Eliminar permanentemente esta encuesta?');
       if (!confirmDelete) return;
       await deleteEncuesta(idEncuesta);
       await fetchEncuestas();
       await fetchEstadisticas();
-      window.showAlert('Encuesta eliminada permanentemente', 'success');
+      showAlert('Encuesta eliminada permanentemente', 'success');
     } catch (error) {
-      window.showAlert(error.message, "error");
+      showAlert(error.message, "error");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <AlertContainer />
+      <AlertContainer show={alert.show} type={alert.type} message={alert.message} />
       <Header />
       <div className="w-full max-w-full m-0 p-4 md:p-8 min-h-[calc(100vh-80px)]">
         <div className="mb-6 md:mb-8">

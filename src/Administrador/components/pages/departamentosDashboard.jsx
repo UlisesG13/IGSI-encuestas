@@ -82,9 +82,17 @@ const DepartamentosDashboard = () => {
 
   // 🔹 Handlers CRUD para departamentos
   const handleCreate = async ({ nombre, descripcion }) => {
-    await createDepartamento({ nombre, descripcion });
-    await fetchDepartamentos();
-    await fetchEstadisticas();
+    try {
+      await createDepartamento({ nombre, descripcion });
+      await fetchDepartamentos();
+      await fetchEstadisticas();
+    } catch (error) {
+      window.showAlert(
+        error?.message || "Error al crear el departamento",
+        "error"
+      );
+      throw error;
+    }
   };
 
   const handleEdit = async (idDepartamento, { nombre, descripcion }) => {

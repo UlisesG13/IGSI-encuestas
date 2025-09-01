@@ -59,19 +59,25 @@ const EmployersDashboard = () => {
   // 🔹 Fetch de estadísticas globales
   const fetchEstadisticas = async () => {
     try {
-      const [statsDepartamentos, statsUsuarios, todasLasEncuestas] = await Promise.all([
+      const [statsDepartamentos, statsUsuarios, encuestas] = await Promise.all([
         getEstadisticasDepartamentos(),
         getEstadisticasUsuarios(),
-        getTodasLasEncuestas()
+        getTodasLasEncuestas().catch(() => []) // fallback si falla
       ]);
 
       setEstadisticas(prev => ({
         ...prev,
         departamentos: statsDepartamentos?.totalDepartamentos || 0,
         empleados: statsUsuarios?.totalUsuarios || 0,
-        encuestas: Array.isArray(todasLasEncuestas) ? todasLasEncuestas.length : 0
+        encuestas: Array.isArray(encuestas) ? encuestas.length : 0
       }));
     } catch (error) {
+      setEstadisticas(prev => ({
+        ...prev,
+        departamentos: 0,
+        empleados: 0,
+        encuestas: 0
+      }));
       console.error("Error cargando estadísticas:", error);
     }
   };
@@ -101,12 +107,12 @@ const EmployersDashboard = () => {
   }, [usuarios, departamentos]);
 
   // 🔹 Handlers CRUD
-  const handleCreate = async ({ nombre, correo, contraseña, rol, departamento }) => {
+  const handleCreate = async ({ nombre, correo, contraseña, departamento }) => {
     await crearUsuario({
       nombre,
       correo,
       password: contraseña,
-      rol,
+      rol: "empleado", // Siempre empleado
       idDepartamento: Number(departamento) || 0,
     });
     await fetchUsuarios();
@@ -156,6 +162,20 @@ const EmployersDashboard = () => {
     }
   };
 
+  const handleCreateEmployer = async (data) => {
+    try {
+      await crearUsuario(data);
+      // ...otros fetch si necesitas...
+    } catch (error) {
+      const backendMsg = error?.response?.data?.message || error?.message;
+      const mensaje = backendMsg === "Nombre, correo y contraseña son obligatorios"
+        ? "Error al crear el usuario"
+        : backendMsg || "Error al crear el usuario";
+      window.showAlert(mensaje, "error");
+      throw error;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <AlertContainer />
@@ -192,7 +212,7 @@ const EmployersDashboard = () => {
           
           {/* Formulario de nuevo empleado */}
           <div className="flex flex-col gap-4 md:gap-6 order-3">
-            <EmployersFormOrganism onCreate={handleCreate} departamentos={departamentos} />
+            <EmployersFormOrganism onCreate={handleCreateEmployer} departamentos={departamentos} />
           </div>
         </div>
       </div>

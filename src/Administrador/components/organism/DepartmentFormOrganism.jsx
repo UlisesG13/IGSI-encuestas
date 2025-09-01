@@ -26,14 +26,18 @@ const DepartmentFormOrganism = ({ onCreate }) => {
     }
 
     if (onCreate) {
-      await onCreate({ nombre: formData.nombre, descripcion: formData.descripcion });
-      window.showAlert('Departamento registrado exitosamente', 'success');
+      try {
+        await onCreate({ nombre: formData.nombre, descripcion: formData.descripcion });
+        window.showAlert('Departamento registrado exitosamente', 'success');
+        // Limpiar formulario solo si fue exitoso
+        setFormData({
+          nombre: '',
+          descripcion: ''
+        });
+      } catch (error) {
+        // La alerta de error ya la muestra handleCreate
+      }
     }
-    // Limpiar formulario
-    setFormData({
-      nombre: '',
-      descripcion: ''
-    });
   };
 
   return (
