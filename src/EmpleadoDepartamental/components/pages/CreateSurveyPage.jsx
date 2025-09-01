@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getDepartamentos } from "../../../Administrador/services/departamentosService.jsx";
 import { createEncuesta } from "../../../Shared/services/encuestasService.jsx";
 import { createSeccion } from "../../../Shared/services/seccionesService.jsx";
@@ -15,6 +16,29 @@ import WelcomeMessage from "../molecule/WelcomeMessage.jsx";
 
 const estados = ["cerrada", "habilitada", "deshabilitada"];
 const CreateSurveyPage = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    async function checkDepartamental() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.showAlert("No tienes sesión activa", "error");
+          navigate("/login");
+          return;
+        }
+        // Decodificar el token para obtener el rol
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.rol !== "AdminDepartamental") {
+          window.showAlert("Acceso restringido solo para administradores departamentales", "error");
+          navigate("/pageNotFound");
+        }
+      } catch (e) {
+        window.showAlert("Error de autenticación", "error");
+        navigate("/login");
+      }
+    }
+    checkDepartamental();
+  }, [navigate]);
   // Estado para la encuesta general
   const [info, setInfo] = useState({
     titulo: "",

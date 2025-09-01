@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";     
+import { useNavigate } from "react-router-dom";
 import Header from "../organism/Header"; 
 import AlertContainer from "../../../Shared/components/molecule/AlertContainer";
 import DashboardCards from "../molecule/DashboardCards";
@@ -15,6 +16,29 @@ import { getEstadisticasUsuarios } from "../../../Shared/services/authService";
 import { getEstadisticasDepartamentos } from "../../services/departamentosService";
 
 const EncuestDashboards = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    async function checkAdmin() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.showAlert("No tienes sesión activa", "error");
+          navigate("/login");
+          return;
+        }
+        // Decodificar el token para obtener el rol
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.rol !== "AdminGeneral") {
+          window.showAlert("Acceso restringido solo para administradores", "error");
+          navigate("/pageNotFound");
+        }
+      } catch (e) {
+        window.showAlert("Error de autenticación", "error");
+        navigate("/login");
+      }
+    }
+    checkAdmin();
+  }, [navigate]);
   const titulo = "Dashboard de Encuestas";
   const [encuestas, setEncuestas] = useState([]);
   const [loading, setLoading] = useState(false);
