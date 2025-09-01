@@ -43,7 +43,21 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginApi(formData.email, formData.password);
-      navigate("/");
+      // Decodificar el token para obtener el rol
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log(payload);
+        if (payload.rol === "AdminGeneral") {
+          navigate("/");
+        } else if (payload.rol === "Empleado") {
+          navigate("/encuestasLista");
+        } else {
+          navigate("/dashboardAlumnos");
+        }
+      } else {
+        navigate("/login");
+      }
     } catch (error) {
       setApiError(error.message || "Error al iniciar sesión");
     } finally {
