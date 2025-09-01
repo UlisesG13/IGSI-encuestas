@@ -36,6 +36,7 @@ export default function FormsAlumn() {
     <div className="w-full bg-gray-50 min-h-screen flex justify-center items-start pt-8">
       <AlertContainer />
       <div className="bg-white rounded-xl shadow-sm w-11/12 max-w-6xl mx-auto p-8 md:p-6">
+        <Header />
         <h2 className="text-xl font-bold text-gray-800 mb-6">Encuestas</h2>
         {loading && <div className="text-gray-500">Cargando encuestas...</div>}
         {error && <div className="text-red-600">{error}</div>}
@@ -43,8 +44,8 @@ export default function FormsAlumn() {
           <div className="w-full flex flex-col gap-4">
             {surveys.map((survey) => (
               <div
-                className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100 cursor-pointer hover:bg-orange-50"
                 key={survey.idEncuesta}
+                className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100 cursor-pointer hover:bg-orange-50"
                 onClick={() => handleSurveyClick(survey.idEncuesta)}
               >
                 <div className="flex flex-col">

@@ -1,12 +1,12 @@
 import { getDepartamentoById } from "../../../Administrador/services/departamentosService";
 import Header from "../organism/Header";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getToken, getUsuarioByCorreo } from "../../../Shared/services/authService";
 import { parseJwt } from "../../../Shared/services/jwtUtils";
 import SidebarActions from "../molecule/SidebarActions";
 import SurveyTable from "../organism/SurveyTable";
 import {
-  getEncuestasByDepartamento,
+  getEncuestas,            // ✅ importar función global
   softDeleteEncuesta,
   restaurarEncuesta,
   deleteEncuesta,
@@ -19,7 +19,6 @@ const TABS = [
   { key: "papelera", label: "Papelera" }
 ];
 
-
 const EncuestList = () => {
   const [selectedSurvey, setSelectedSurvey] = useState(null);
   const [tab, setTab] = useState("activas");
@@ -29,7 +28,7 @@ const EncuestList = () => {
   const [departamento, setDepartamento] = useState("");
   const [idDepartamento, setIdDepartamento] = useState(null);
 
-  // Obtener departamento y usuario al montar
+  // Obtener info de usuario solo para mostrar el nombre de departamento
   useEffect(() => {
     const fetchDepartamento = async () => {
       try {
@@ -38,6 +37,7 @@ const EncuestList = () => {
         if (payload && payload.sub) {
           const usuario = await getUsuarioByCorreo(payload.sub);
           setIdDepartamento(usuario.idDepartamento);
+
           let nombreDepto = usuario.departamentoNombre || usuario.nombreDepartamento || "";
           if (usuario.idDepartamento) {
             const departamentoObj = await getDepartamentoById(usuario.idDepartamento);
@@ -47,117 +47,99 @@ const EncuestList = () => {
           }
           setDepartamento(nombreDepto);
         }
-      } catch (e) {
+      } catch {
         setDepartamento("");
       }
     };
     fetchDepartamento();
   }, []);
 
-  // Cargar encuestas cuando cambia el tab o el departamento
-  useEffect(() => {
-    const fetchEncuestas = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        let data = [];
-        if (tab === "papelera") {
-          try {
-            if (idDepartamento) {
-              data = await getEncuestasEliminadas(idDepartamento);
-            }
-          } catch (err) {
-            if (err.message && err.message.includes('404')) {
-              data = [];
-            } else {
-              throw err;
-            }
-          }
-        } else {
-          try {
-            if (idDepartamento) {
-              data = await getEncuestasByDepartamento(idDepartamento);
-            }
-          } catch (err) {
-            if (err.message && err.message.includes('404')) {
-              data = [];
-            } else {
-              throw err;
-            }
-          }
-        }
-        setEncuestas(Array.isArray(data) ? data : []);
-        setError(null);
-      } catch (err) {
-        setError("Ocurrió un error inesperado al cargar las encuestas");
-        setEncuestas([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (idDepartamento) fetchEncuestas();
-  }, [tab, idDepartamento]);
-
-
-  const fetchEncuestasDeleted = async () => {
+  // ✅ función única para traer encuestas
+  const fetchEncuestas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getEncuestasDeleted(); // llamamos al service para encuestas eliminadas
-      setEncuestas(data);
+      let data = [];
+      if (tab === "papelera") {
+        data = await getEncuestasDeleted();
+      } else {
+        // 🔥 Ahora trae todas las encuestas, no solo por depto
+        data = await getEncuestas();
+      }
+      setEncuestas(Array.isArray(data) ? data : []);
+      setError(null);
     } catch (err) {
-      setError("Error al cargar encuestas eliminadas");
+      setError("Ocurrió un error inesperado al cargar las encuestas");
+      setEncuestas([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [tab]);
 
-  // Filtrar encuestas según tab
-  const encuestasActivas = encuestas.filter(e => !e.deleted);
-  const encuestasEliminadas = encuestas.filter(e => e.deleted);
+  // Cargar encuestas cuando cambia el tab
+  useEffect(() => {
+    fetchEncuestas();
+  }, [tab, fetchEncuestas]);
 
   // Acciones
   const handleSoftDelete = async (idEncuesta) => {
-    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta || encuesta.deleted) return;
-    // Deshabilitar antes de eliminar
-    await updateEncuesta(idEncuesta, { ...encuesta, estado: "deshabilitada" });
-    await softDeleteEncuesta(idEncuesta);
-    await fetchEncuestas();
-    setSelectedSurvey(null);
+    try {
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta || encuesta.deleted) return;
+
+      await updateEncuesta(idEncuesta, { ...encuesta, estado: "deshabilitada" });
+      await softDeleteEncuesta(idEncuesta);
+
+      await fetchEncuestas();
+      setSelectedSurvey(null);
+    } catch (e) {
+      alert(e.message || "Error al eliminar encuesta");
+    }
   };
+
   const handleRestaurar = async (idEncuesta) => {
-    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta || !encuesta.deleted) return;
-    await restaurarEncuesta(idEncuesta);
-    await updateEncuesta(idEncuesta, { ...encuesta, estado: "habilitada" });
-    await fetchEncuestas();
-    setSelectedSurvey(null);
+    try {
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) return;
+
+      await restaurarEncuesta(idEncuesta);
+      await updateEncuesta(idEncuesta, { ...encuesta, estado: "habilitada" });
+
+      await fetchEncuestas();
+      setSelectedSurvey(null);
+    } catch (e) {
+      alert(e.message || "Error al restaurar encuesta");
+    }
   };
+
   const handleDelete = async (idEncuesta) => {
-    await deleteEncuesta(idEncuesta);
-    await fetchEncuestas();
-    setSelectedSurvey(null);
+    try {
+      const ok = confirm("¿Eliminar permanentemente esta encuesta?");
+      if (!ok) return;
+      await deleteEncuesta(idEncuesta);
+      await fetchEncuestas();
+      setSelectedSurvey(null);
+      alert("Encuesta eliminada permanentemente");
+    } catch (e) {
+      alert(e.message || "Error al eliminar encuesta");
+    }
   };
-  const handleCambiarEstado = async (idEncuesta, nuevoEstado) => {
-    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta) return;
-    await updateEncuesta(idEncuesta, {
-      ...encuesta,
-      estado: "deshabilitada"
-    });
-    fetchEncuestas();
-    setSelectedSurvey(null);
-  };
-  const handleHabilitar = async (idEncuesta) => {
-    const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
-    if (!encuesta) return;
-    await updateEncuesta(idEncuesta, {
-      ...encuesta,
-      estado: "habilitada"
-    });
-    fetchEncuestas();
-    setSelectedSurvey(null);
+
+  const handleCambiarEstado = async (idEncuesta, nuevoEstadoUI) => {
+    try {
+      const encuesta = encuestas.find(e => e.idEncuesta === idEncuesta);
+      if (!encuesta) return;
+
+      let estadoBackend = nuevoEstadoUI;
+      if (nuevoEstadoUI === "activa") estadoBackend = "habilitada";
+      if (nuevoEstadoUI === "inactiva") estadoBackend = "deshabilitada";
+
+      await updateEncuesta(idEncuesta, { ...encuesta, estado: estadoBackend });
+      await fetchEncuestas();
+      setSelectedSurvey(null);
+    } catch (e) {
+      alert(e.message || "Error al actualizar estado");
+    }
   };
 
   // Selección de encuesta
@@ -165,12 +147,8 @@ const EncuestList = () => {
     setSelectedSurvey(selectedSurvey === index ? null : index);
   };
 
-
-  // Encuestas a mostrar según tab
   const surveys = encuestas;
 
-
-  // Acciones para Sidebar
   const sidebarActionsProps = {
     selectedSurvey,
     tab,
@@ -178,7 +156,7 @@ const EncuestList = () => {
     onSoftDelete: (idx) => handleSoftDelete(surveys[idx].idEncuesta),
     onRestaurar: (idx) => handleRestaurar(surveys[idx].idEncuesta),
     onDelete: (idx) => handleDelete(surveys[idx].idEncuesta),
-    onCambiarEstado: (idx, nuevoEstado) => handleCambiarEstado(surveys[idx].idEncuesta, nuevoEstado)
+    onCambiarEstado: (idx, nuevoEstado) => handleCambiarEstado(surveys[idx].idEncuesta, nuevoEstado),
   };
 
   return (
@@ -188,7 +166,9 @@ const EncuestList = () => {
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Encuestas</h1>
           {departamento && (
-            <p className="text-base font-semibold text-gray-700 mb-2">Departamento: {departamento}</p>
+            <p className="text-base font-semibold text-gray-700 mb-2">
+              Departamento: {departamento}
+            </p>
           )}
           {selectedSurvey !== null && (
             <p className="text-sm text-gray-600">
@@ -196,27 +176,29 @@ const EncuestList = () => {
             </p>
           )}
         </div>
+
         {/* Tabs */}
         <div className="flex gap-4 mb-6">
           {TABS.map(t => (
             <button
               key={t.key}
-              className={`px-4 py-2 rounded-t font-semibold border-b-2 transition-colors duration-150 ${tab === t.key ? 'border-orange-500 text-orange-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-orange-600'}`}
-              onClick={async () => {
+              className={`px-4 py-2 rounded-t font-semibold border-b-2 transition-colors duration-150 ${
+                tab === t.key ? 'border-orange-500 text-orange-600 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-orange-600'
+              }`}
+              onClick={() => {
                 setTab(t.key);
                 setSelectedSurvey(null);
-                // Traemos encuestas según tab
-                if (t.key === "activas") await fetchEncuestas();
-                if (t.key === "papelera") await fetchEncuestasDeleted();
               }}
             >
               {t.label}
             </button>
           ))}
         </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar con acciones */}
+          {/* Sidebar */}
           <SidebarActions {...sidebarActionsProps} />
+
           {/* Tabla de encuestas */}
           <div className="flex-1">
             {loading ? (
@@ -238,4 +220,4 @@ const EncuestList = () => {
   );
 };
 
-export default EncuestList; 
+export default EncuestList;

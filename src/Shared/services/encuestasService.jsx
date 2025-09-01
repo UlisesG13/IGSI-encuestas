@@ -29,6 +29,12 @@ export async function getEncuestaById(id) {
   return res.json();
 }
 
+getEncuestaCompleta: async (id) => {
+    const res = await fetch(`${API_BASE}/encuestas/${id}/completa`, { headers: authHeaders() });
+    if (!res.ok) throw new Error("Error al obtener encuesta completa");
+    return res.json();
+  }
+  
 export async function getEncuestasByDepartamento(idDepartamento) {
   const res = await fetch(`${API_BASE}/encuestas/departamento/${idDepartamento}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error al obtener encuestas por departamento");
