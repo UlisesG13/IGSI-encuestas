@@ -6,25 +6,31 @@ const API_URL = "http://localhost:8080/api/usuarios"; // base URL usuarios
 
 export async function login(email, password) {
 	try {
-		const response = await fetch(`${API_URL}/login`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ correo: email, password }), // tu API usa "correo"
-		});
-		if (!response.ok) {
-			const errorData = await response.json();
-			throw new Error(errorData.message || "Credenciales incorrectas");
-		}
-		const data = await response.json();
-		console.log(data)
-		localStorage.setItem("token", data.token);
-		return data;
+	  const response = await fetch(`${API_URL}/login`, {
+		method: "POST",
+		headers: {
+		  "Content-Type": "application/json",
+		},
+		body: JSON.stringify({ correo: email, password }),
+	  });
+  
+	  if (!response.ok) {
+		const errorData = await response.json();
+		throw new Error(errorData.message || "Credenciales incorrectas");
+	  }
+  
+	  const data = await response.json();
+	  console.log(data);
+  
+	  localStorage.setItem("token", data.token);
+	  localStorage.setItem("user", JSON.stringify(data.usuario)); // 👈 guardamos usuario con rol
+  
+	  return data;
 	} catch (error) {
-		throw error;
+	  throw error;
 	}
-}
+  }
+  
 
 export function getToken() {
 	return localStorage.getItem("token");
@@ -109,6 +115,12 @@ export async function actualizarUsuario(id, usuario) {
 	}
 	return await response.json();
 }
+
+export function getCurrentUser() {
+	const user = localStorage.getItem("user");
+	return user ? JSON.parse(user) : null;
+  }
+  
 
 // Eliminar usuario (solo AdminGeneral)
 export async function eliminarUsuario(id) {

@@ -48,6 +48,7 @@ export default function Login() {
       if (token) {
         const payload = JSON.parse(atob(token.split('.')[1]));
         console.log(payload);
+        localStorage.setItem("user", JSON.stringify(payload));
         if (payload.rol === "AdminGeneral") {
           navigate("/");
         } else if (payload.rol === "Empleado") {
