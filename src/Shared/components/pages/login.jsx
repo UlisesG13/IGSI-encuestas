@@ -4,6 +4,7 @@ import { ArrowRight, Facebook, Instagram, Twitter } from "lucide-react";
 import logoIGSI from '../../../assets/logoIGSI.png';
 import imgLogin from '../../../assets/imgLogin.webp';
 import { login as loginApi } from '../../services/authService';
+import { loginAlumno } from "../../services/alumnosService"; 
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,9 +25,7 @@ export default function Login() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email) newErrors.email = "El correo es obligatorio";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      newErrors.email = "Ingrese un correo válido";
+    if (!formData.email) newErrors.email = "El correo o nombre es obligatorio";
     if (!formData.password) newErrors.password = "La contraseña es obligatoria";
     return newErrors;
   };
@@ -41,21 +40,42 @@ export default function Login() {
     }
     setErrors({});
     setLoading(true);
+
     try {
-      const data = await loginApi(formData.email, formData.password);
-      // Decodificar el token para obtener el rol
-      const token = localStorage.getItem("token");
-      if (token) {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.rol === "AdminGeneral") {
-          navigate("/");
-        } else if (payload.rol === "Empleado") {
-          navigate("/encuestasLista");
-        } else {
-          navigate("/login");
+      
+      let data;
+      let token;
+
+      // Diferenciar entre usuario (correo) y alumno (nombre)
+      if (formData.email.includes("@")) {
+        // Usuario/Admin/Empleado
+        data = await loginApi(formData.email, formData.password);
+        token = localStorage.getItem("token");
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.rol === "AdminGeneral") {
+            navigate("/");
+          } else if (payload.rol === "Empleado") {
+            navigate("/encuestasLista");
+          } else {
+            navigate("/login");
+          }
         }
       } else {
-        navigate("/dashboardAlumnos");
+        console.log(formData)
+        let alumno = { nombre:formData.email, password: formData.password }
+        console.log(alumno)
+        // Alumno
+        data = await loginAlumno(alumno);
+        token = localStorage.getItem("authToken");
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.id) {
+            navigate("/dashboardAlumnos");
+          } else {
+            navigate("/login");
+          }
+        }
       }
     } catch (error) {
       setApiError(error.message || "Error al iniciar sesión");
@@ -66,6 +86,7 @@ export default function Login() {
 
   return (
     <div className="flex h-screen">
+      {/* --- Lado Izquierdo con Imagen --- */}
       <div className="w-1/2 relative flex items-center justify-center overflow-hidden">
         <img src={imgLogin} alt="Fondo" className="absolute inset-0 w-full h-full object-cover z-0" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10">
@@ -79,28 +100,29 @@ export default function Login() {
         </div>
       </div>
 
+      {/* --- Formulario de Login --- */}
       <div className="w-1/2 bg-white flex items-center justify-center">
         <form className="w-10/12 max-w-md flex flex-col" onSubmit={handleSubmit}>
           <h2 className="text-3xl text-gray-800 font-bold mb-2">Inicio de sesión</h2>
           <p className="text-sm text-gray-500 mb-6">Por favor, complete su información a continuación</p>
 
           <label htmlFor="email" className="text-sm text-gray-700 font-semibold mb-1 flex items-center gap-2">
-            Correo electrónico <ArrowRight size={16} className="text-blue-500" />
+            Correo o Nombre de alumno <ArrowRight size={16} className="text-blue-500" />
           </label>
           <input
-            type="email"
+            type="text"
             name="email"
             id="email"
-            placeholder="abc@gmail.com"
+            placeholder="abc@gmail.com o nombreAlumno"
             value={formData.email}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg py-3 px-4 mb-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            autoComplete="email"
+            autoComplete="username"
           />
           {errors.email && <p className="text-red-500 text-xs mb-3">{errors.email}</p>}
 
           <label htmlFor="password" className="text-sm text-gray-700 font-semibold mb-1 flex items-center gap-2">
-            Password <ArrowRight size={16} className="text-blue-500" />
+            Contraseña <ArrowRight size={16} className="text-blue-500" />
           </label>
           <input
             type="password"

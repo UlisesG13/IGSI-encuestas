@@ -5,8 +5,13 @@ import AlertContainer from '../molecule/AlertContainer.jsx';
 import Header from '../organism/Header.jsx';
 import { QuestionForm } from '../organism/QuestionForm.jsx';
 import { encuestasService } from '../../services/encuestasService.jsx';
+import { getAuthToken } from '../../../Shared/services/alumnosService.jsx';
 
 export const QuestionnairePage = ({ initialData = {}, onComplete, className = '' }) => {
+
+  let token = getAuthToken()
+
+  const payload = JSON.parse(atob(token.split('.')[1]));
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);

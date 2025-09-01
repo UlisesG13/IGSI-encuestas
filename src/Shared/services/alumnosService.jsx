@@ -70,7 +70,7 @@ export async function loginAlumno(payload) {
 
   // Guardar token en localStorage si está presente en la respuesta
   if (data.token) {
-    localStorage.setItem("token", data.token);
+    localStorage.setItem("authToken", data.token);
   }
 
   return data;
