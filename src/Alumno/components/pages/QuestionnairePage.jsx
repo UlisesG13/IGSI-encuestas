@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertContainer from '../molecule/AlertContainer.jsx';
@@ -41,12 +40,12 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
     }
   }
   const navigate = useNavigate();
+  const idEncuesta = encuestasService.getEncuestaIdFromUrl();
 
   // Cargar encuesta
   useEffect(() => {
     const cargarEncuestaCompleta = async () => {
       try {
-        const idEncuesta = encuestasService.getEncuestaIdFromUrl();
         if (!idEncuesta) throw new Error('No se encontró ID de encuesta en la URL');
 
         const encuestaCompleta = await encuestasService.getEncuestaCompleta(idEncuesta);
@@ -56,6 +55,34 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
         const preguntasProcesadas = {};
         encuestaCompleta.secciones.forEach(sec => {
           preguntasProcesadas[sec.idSeccion] = sec.preguntas.map(p => {
+            let options = [];
+            let labels = [];
+            const tipo = parseInt(p.idTipoPregunta);
+            // Si no hay respuestas pero es sí/no, crear opciones manualmente
+            if ((tipo === 5 || (tipo === 2 && (!p.respuestas || p.respuestas.length === 0))) && options.length === 0) {
+              options = [
+                { id: 1, text: 'Sí' },
+                { id: 0, text: 'No' }
+              ];
+            }
+            // Para tipo Likert, si las respuestas tienen texto tipo escala, usar como opciones
+            if (tipo === 4 && p.respuestas && p.respuestas.length > 0) {
+              options = p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta }));
+              labels = p.respuestas.map(r => r.textoRespuesta);
+            } else if (p.respuestas && p.respuestas.length > 0) {
+              options = p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta }));
+            }
+            // Si es tipo Likert y no hay opciones, usar escala estándar
+            if (tipo === 4 && options.length === 0) {
+              options = [
+                { id: 1, text: 'Muy en desacuerdo' },
+                { id: 2, text: 'En desacuerdo' },
+                { id: 3, text: 'Neutral' },
+                { id: 4, text: 'De acuerdo' },
+                { id: 5, text: 'Muy de acuerdo' }
+              ];
+              labels = options.map(o => o.text);
+            }
             const processed = {
               id: p.idPregunta,
               text: p.textoPregunta,
@@ -63,8 +90,8 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
               answer: getDefaultAnswer(p.idTipoPregunta, p.respuestas),
               answered: false,
               ayuda: p.ayuda,
-              options: p.respuestas ? p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta })) : [],
-              labels: p.respuestas ? p.respuestas.map(r => r.textoRespuesta) : []
+              options,
+              labels
             };
             console.log('Pregunta procesada:', processed); // 🔹 log
             return processed;
@@ -146,6 +173,8 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
       }
 
       if (onComplete) onComplete();
+
+      await completeEncuesta(idEncuesta, alumnoId);
       navigate("/dashboardAlumnos");
     } catch (err) {
       console.error("Error guardando respuestas:", err);
@@ -216,7 +245,8 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 shadow-sm">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">{currentQuestion.ayuda ? `${currentQuestion.text}\n💡 ${currentQuestion.ayuda}` : currentQuestion.text}</h3>
                 {/* Renderizar opciones según tipo */}
-                {currentQuestion.type === 'radio' && (
+                {/* Radio: opción múltiple, selección única, sí/no */}
+                {(currentQuestion.type === 'radio') && currentQuestion.options.length > 0 && (
                   <div className="flex flex-col gap-4 mt-4">
                     {currentQuestion.options.map((opt, idx) => (
                       <label key={idx} className="flex items-center gap-3 cursor-pointer">
@@ -233,7 +263,26 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
                     ))}
                   </div>
                 )}
-                {currentQuestion.type === 'checklist' && (
+                {/* Likert: escala likert */}
+                {(currentQuestion.type === 'likert') && currentQuestion.options.length > 0 && (
+                  <div className="flex flex-row gap-3 mt-4 justify-center">
+                    {currentQuestion.options.map((opt, idx) => (
+                      <label key={idx} className="flex flex-col items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`likert-${currentQuestion.id}`}
+                          value={opt.id}
+                          checked={currentQuestion.answer === opt.id}
+                          onChange={() => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, opt.id)}
+                          className="accent-orange-500 w-6 h-6 mb-1"
+                        />
+                        <span className="text-gray-700 text-base">{opt.text}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {/* Checklist: check box */}
+                {currentQuestion.type === 'checklist' && currentQuestion.options.length > 0 && (
                   <div className="flex flex-col gap-4 mt-4">
                     {currentQuestion.options.map((opt, idx) => (
                       <label key={idx} className="flex items-center gap-3 cursor-pointer">
@@ -255,23 +304,7 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
                     ))}
                   </div>
                 )}
-                {currentQuestion.type === 'likert' && (
-                  <div className="flex flex-row gap-3 mt-4 justify-center">
-                    {currentQuestion.labels.map((label, idx) => (
-                      <label key={idx} className="flex flex-col items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`likert-${currentQuestion.id}`}
-                          value={label}
-                          checked={currentQuestion.answer === label}
-                          onChange={() => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, label)}
-                          className="accent-orange-500 w-6 h-6 mb-1"
-                        />
-                        <span className="text-gray-700 text-base">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                {/* Text, email, number, date, tel */}
                 {['text', 'email', 'number', 'date', 'tel'].includes(currentQuestion.type) && (
                   <div className="mt-4">
                     <input
@@ -283,6 +316,7 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
                     />
                   </div>
                 )}
+                {/* Textarea */}
                 {currentQuestion.type === 'textarea' && (
                   <div className="mt-4">
                     <textarea
