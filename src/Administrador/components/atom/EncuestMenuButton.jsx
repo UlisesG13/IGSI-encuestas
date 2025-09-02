@@ -1,46 +1,40 @@
 import { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom'; // <-- Agrega esto
+import ReactDOM from 'react-dom';
 import { MoreVertical } from 'lucide-react';
+import EncuestaModal from './EncuestaModal'; // <-- Importa el modal
 
 const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDelete, onCambiarEstado, showDeleted }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false); // <-- Estado para el modal
   const menuRef = useRef(null);
-  const buttonRef = useRef(null); // <-- Nuevo ref
+  const buttonRef = useRef(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-  // Función para manejar soft delete
   const handleSoftDelete = async (id) => {
-    if (onSoftDelete) {
-      await onSoftDelete(id);
-    }
+    if (onSoftDelete) await onSoftDelete(id);
     setIsOpen(false);
   };
 
-  // Función para manejar restaurar
   const handleRestaurar = async (id) => {
-    if (onRestaurar) {
-      await onRestaurar(id);
-    }
+    if (onRestaurar) await onRestaurar(id);
     setIsOpen(false);
   };
 
-  // Función para manejar hard delete
   const handleDelete = async (id) => {
-    if (onDelete) {
-      await onDelete(id);
-    }
+    if (onDelete) await onDelete(id);
     setIsOpen(false);
   };
 
-  // Función para cambiar estado
   const handleCambiarEstado = async (id, nuevoEstado) => {
-    if (onCambiarEstado) {
-      await onCambiarEstado(id, nuevoEstado);
-    }
+    if (onCambiarEstado) await onCambiarEstado(id, nuevoEstado);
     setIsOpen(false);
   };
 
-  // Cerrar menú al hacer clic fuera
+  const handleVerEncuesta = () => {
+    setShowModal(true);
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -52,14 +46,10 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calcular posición absoluta del menú
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -72,7 +62,6 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
 
   return (
     <div className="relative inline-block">
-      {/* Botón Menu */}
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
@@ -81,30 +70,31 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
         <MoreVertical size={16} />
       </button>
 
-      {/* Menú desplegable en portal */}
       {isOpen &&
         ReactDOM.createPortal(
           <div
             ref={menuRef}
             className="absolute w-48 bg-white border border-gray-200 rounded-lg shadow-large z-[9999]"
-            style={{
-              top: menuPosition.top,
-              left: menuPosition.left,
-              position: "absolute",
-              zIndex: 9999,
-            }}
+            style={{ top: menuPosition.top, left: menuPosition.left }}
           >
             <div className="py-1">
-              {/* Opciones de estado */}
+              <button
+                onClick={handleVerEncuesta}
+                className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50"
+              >
+                Ver Encuesta
+              </button>
+              <hr className="border-t border-gray-200" />
+
               {!showDeleted && estado !== 'activa' && (
                 <>
                   <button
                     onClick={() => handleCambiarEstado(idEncuesta, 'activa')}
-                    className="w-full text-left px-3 py-2 text-sm text-green-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-green-50 focus:outline-none"
+                    className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-green-50"
                   >
                     Habilitar
                   </button>
-                  <hr className="border-0 border-t border-gray-200 m-0" />
+                  <hr className="border-t border-gray-200" />
                 </>
               )}
 
@@ -112,51 +102,48 @@ const EncuestMenuButton = ({ idEncuesta, estado, onSoftDelete, onRestaurar, onDe
                 <>
                   <button
                     onClick={() => handleCambiarEstado(idEncuesta, 'inactiva')}
-                    className="w-full text-left px-3 py-2 text-sm text-yellow-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-yellow-50 focus:outline-none"
+                    className="w-full text-left px-3 py-2 text-sm text-yellow-600 hover:bg-yellow-50"
                   >
                     Deshabilitar
                   </button>
-                  <hr className="border-0 border-t border-gray-200 m-0" />
+                  <hr className="border-t border-gray-200" />
                 </>
               )}
 
-              {/* Soft delete - solo si no está eliminada */}
               {!showDeleted && (
                 <button
                   onClick={() => handleSoftDelete(idEncuesta)}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-gray-100 focus:outline-none"
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   Eliminar
                 </button>
               )}
 
-              {/* Restaurar - solo si está en vista de eliminadas */}
               {showDeleted && (
                 <>
                   <button
                     onClick={() => handleRestaurar(idEncuesta)}
-                    className="w-full text-left px-3 py-2 text-sm text-green-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-green-50 focus:outline-none"
+                    className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-green-50"
                   >
                     Restaurar
                   </button>
-                  <hr className="border-0 border-t border-gray-200 m-0" />
+                  <hr className="border-t border-gray-200" />
+                  <button
+                    onClick={() => handleDelete(idEncuesta)}
+                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    Eliminar Permanentemente
+                  </button>
                 </>
-              )}
-
-              {/* Hard delete - solo en vista de eliminadas */}
-              {showDeleted && (
-                <button
-                  onClick={() => handleDelete(idEncuesta)}
-                  className="w-full text-left px-3 py-2 text-sm text-red-600 bg-transparent border-none cursor-pointer transition-colors duration-150 hover:bg-red-50 focus:outline-none"
-                >
-                  Eliminar Permanentemente
-                </button>
               )}
             </div>
           </div>,
-          document.body // <-- Renderiza en el body
-        )
-      }
+          document.body
+        )}
+
+      {showModal && (
+        <EncuestaModal idEncuesta={idEncuesta} onClose={() => setShowModal(false)} />
+      )}
     </div>
   );
 };

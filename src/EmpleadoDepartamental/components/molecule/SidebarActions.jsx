@@ -1,13 +1,21 @@
 import SidebarActionButton from "../atom/SidebarActionButton";
-import { Plus, Trash2, Edit, FileText, XCircle, RefreshCcw } from 'lucide-react';
+import { Plus, Trash2, FileText, XCircle, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import EncuestaModal from './EncuestaModal'; // <-- Asegúrate de tenerlo
+
 
 const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaurar, onDelete, onCambiarEstado }) => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+
   const hasSelection = selectedSurvey !== null && surveys[selectedSurvey];
   const isDeshabilitada = hasSelection && (surveys[selectedSurvey].estado === 'deshabilitada');
 
-  // Acciones para la pestaña principal
+  const handleVerEncuesta = () => {
+    if (hasSelection) setShowModal(true);
+  };
+
   const mainActions = [
     {
       icon: Plus,
@@ -16,6 +24,13 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
       color: "blue",
       disabled: false,
       onClick: () => navigate('/crearEncuestas')
+    },
+    {
+      icon: FileText,
+      title: "Ver Encuesta",
+      color: "indigo",
+      disabled: !hasSelection,
+      onClick: handleVerEncuesta
     },
     {
       icon: XCircle,
@@ -37,17 +52,10 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
       color: "red",
       disabled: !hasSelection,
       onClick: () => hasSelection && onSoftDelete(selectedSurvey)
-    },
-    {
-      icon: Edit,
-      title: "Editar Encuesta",
-      color: "green",
-      disabled: !hasSelection,
-      onClick: () => hasSelection && navigate(`/editarEncuesta/${surveys[selectedSurvey].idEncuesta}`)
     }
+    // 🔴 Eliminamos la opción de Editar Encuesta
   ];
 
-  // Acciones para la papelera
   const trashActions = [
     {
       icon: RefreshCcw,
@@ -80,8 +88,15 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
           onClick={action.onClick}
         />
       ))}
+
+      {showModal && (
+        <EncuestaModal
+          idEncuesta={surveys[selectedSurvey].idEncuesta}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
-}
+};
 
 export default SidebarActions;
