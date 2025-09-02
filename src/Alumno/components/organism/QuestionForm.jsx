@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { QuestionCard } from '../molecule/QuestionCard.jsx';
-import { NavigationButtons } from '../molecule/NavigationButtons.jsx';
-import { ProgressIndicator } from '../molecule/ProgressIndicator.jsx';
-import ChecklistQuestion from '../molecule/ChecklistQuestion.jsx';
-import LikertQuestion from '../molecule/LikertQuestion.jsx';
+import { useState } from "react";
+import { QuestionCard } from "../molecule/QuestionCard.jsx";
+import { NavigationButtons } from "../molecule/NavigationButtons.jsx";
+import { ProgressIndicator } from "../molecule/ProgressIndicator.jsx";
+import ChecklistQuestion from "../molecule/ChecklistQuestion.jsx";
+import LikertQuestion from "../molecule/LikertQuestion.jsx";
 
-export const QuestionForm = ({ 
+export const QuestionForm = ({
   question,
+  ayuda,
   answer,
   onAnswerChange,
   questionNumber,
@@ -17,17 +18,18 @@ export const QuestionForm = ({
   isLoading = false,
   error,
   autoSave = true,
-  className = '',
-  ...props 
+  className = "",
+  type,
+  options = [],
+  labels = [],
 }) => {
   const [lastSaved, setLastSaved] = useState(null);
-  
+
   const canGoPrevious = questionNumber > 1;
   const canGoNext = questionNumber < totalQuestions;
   const isFirstQuestion = questionNumber === 1;
   const isLastQuestion = questionNumber === totalQuestions;
 
-  // Render dinámico según tipo de pregunta
   const renderQuestionContent = () => {
     if (isLoading) {
       return (
@@ -37,42 +39,61 @@ export const QuestionForm = ({
         </div>
       );
     }
+
     // Checklist
-    if (props.type === 'checklist' && props.options) {
+    if (type === "checklist" && options.length > 0) {
       return (
         <ChecklistQuestion
           question={question}
-          options={props.options}
-          selected={answer}
+          options={options}
+          selected={answer || []}
           onChange={onAnswerChange}
         />
       );
     }
+
     // Likert
-    if (props.type === 'likert' && props.labels) {
+    if (type === "likert" && labels.length > 0) {
       return (
         <LikertQuestion
           question={question}
-          labels={props.labels}
+          labels={labels}
           value={answer}
           onChange={onAnswerChange}
         />
       );
     }
-    // Pregunta tradicional
+
+    // Radio
+    if (type === "radio" && options.length > 0) {
+      return options.map((opt) => (
+        <label key={opt.id} className="block mb-2">
+          <input
+            type="radio"
+            name={`q-${questionNumber}`}
+            value={opt.id}
+            checked={answer === opt.id}
+            onChange={() => onAnswerChange(opt.id)}
+            className="mr-2"
+          />
+          {opt.text}
+        </label>
+      ));
+    }
+
+    // Text (abierta)
     return (
-      <QuestionCard
-        question={question}
-        answer={answer}
-        onAnswerChange={onAnswerChange}
-        questionNumber={questionNumber}
-        error={error}
+      <textarea
+        className="border p-2 w-full"
+        value={answer || ""}
+        onChange={(e) => onAnswerChange(e.target.value)}
+        placeholder="Escribe tu respuesta aquí..."
       />
     );
   };
 
   return (
-    <div className={`flex-1 flex flex-col h-full ${className}`} {...props}>
+    <div className={`flex-1 flex flex-col h-full ${className}`}>
       {/* Header con progreso */}
       <div className="bg-white border-b border-orange-200 p-6">
         <ProgressIndicator
@@ -88,14 +109,20 @@ export const QuestionForm = ({
         )}
       </div>
 
-      {/* Contenido principal */}
+      {/* Contenido */}
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-3xl mx-auto">
+          {/* Mostrar el texto y tipo de pregunta */}
+          <div className="mb-2">
+            <p className="font-semibold text-gray-700">{question}</p>
+            <span className="text-xs text-gray-400">Tip: {ayuda}</span>
+          </div>
+
           {renderQuestionContent()}
         </div>
       </div>
 
-      {/* Footer con navegación */}
+      {/* Footer */}
       <div className="bg-white border-t border-orange-200 p-6">
         <div className="max-w-3xl mx-auto">
           <NavigationButtons

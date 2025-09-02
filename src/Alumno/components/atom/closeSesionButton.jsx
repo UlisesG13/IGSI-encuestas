@@ -1,18 +1,12 @@
 import React from "react";
-import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { FiLogOut } from "react-icons/fi";
 
 const CloseSesionButton = () => {
   const navigate = useNavigate();
-
-  const handleClick = () => {
-    // Aquí puedes limpiar el localStorage/sessionStorage si es necesario
-    localStorage.removeItem("token"); // ejemplo
-    sessionStorage.clear();
-
-    // Redirige al login
-    navigate("/login");
-  };
+    const handleClick = () => {
+      navigate("/login");
+    };
 
   return (
     <button

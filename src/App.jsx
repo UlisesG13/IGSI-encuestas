@@ -4,11 +4,11 @@ import EncuestDashboards from './Administrador/components/pages/encuestDashboard
 import Login from './Shared/components/pages/login.jsx';
 import PageNotFound from './Shared/components/pages/pageNotFound.jsx';
 import { QuestionnairePage } from './Alumno/components/pages/QuestionnairePage.jsx';
-import FormsAlumn from './Alumno/components/organism/formsAlumn.jsx';
 import EmployersDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 import CreateSurveyPage from './EmpleadoDepartamental/components/pages/CreateSurveyPage.jsx';
 import EncuestList from './EmpleadoDepartamental/components/pages/EncuestList.jsx';
 import PrivateRoute from './Shared/services/PrivateRoute.jsx';
+import SurveyAlumn from './Alumno/components/pages/surveyAlumn.jsx';
 
 function App() {
   return (
@@ -43,11 +43,11 @@ function App() {
       <Route
         path="dashboardAlumnos"
         element={
-            <FormsAlumn />
+            <SurveyAlumn/>
         }
       />
       <Route
-        path="formulariosAlumnos"
+        path="formulariosAlumnos:/id"
         element={
             <QuestionnairePage />
         }

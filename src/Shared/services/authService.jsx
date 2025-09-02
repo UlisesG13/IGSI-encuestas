@@ -89,7 +89,13 @@ export async function crearUsuario(usuario) {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${token}`,
 		},
-		body: JSON.stringify(usuario),
+		body: JSON.stringify({
+			nombre: usuario.nombre,
+			correo: usuario.correo,
+			password: usuario.contraseña,
+			rol: usuario.rol,
+			idDepartamento: Number(usuario.departamento) || null,
+		}),
 	});
 	if (!response.ok) {
 		const errorData = await response.json();
@@ -107,7 +113,13 @@ export async function actualizarUsuario(id, usuario) {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${token}`,
 		},
-		body: JSON.stringify(usuario),
+		body: JSON.stringify({
+			nombre: usuario.nombre,
+			correo: usuario.correo,
+			password: usuario.password || usuario.contraseña,
+			rol: usuario.rol,
+			idDepartamento: usuario.idDepartamento || (usuario.departamento ? Number(usuario.departamento) : null),
+		}),
 	});
 	if (!response.ok) {
 		const errorData = await response.json();
