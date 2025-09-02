@@ -1,9 +1,17 @@
 import React from "react";
 import { FiLogOut } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const CloseSesionButton = () => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
-    alert("Cerrar sesión");
+    // Aquí puedes limpiar el localStorage/sessionStorage si es necesario
+    localStorage.removeItem("token"); // ejemplo
+    sessionStorage.clear();
+
+    // Redirige al login
+    navigate("/login");
   };
 
   return (
@@ -18,3 +26,4 @@ const CloseSesionButton = () => {
 };
 
 export default CloseSesionButton;
+

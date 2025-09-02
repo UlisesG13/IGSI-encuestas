@@ -3,38 +3,79 @@ import DepartamentosDashboard from './Administrador/components/pages/departament
 import EncuestDashboards from './Administrador/components/pages/encuestDashboards.jsx';
 import Login from './Shared/components/pages/login.jsx';
 import PageNotFound from './Shared/components/pages/pageNotFound.jsx';
-import AlumnsDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 import { QuestionnairePage } from './Alumno/components/pages/QuestionnairePage.jsx';
-import SurveyAlumn from './Alumno/components/pages/surveyAlumn.jsx';
+import FormsAlumn from './Alumno/components/organism/formsAlumn.jsx';
 import EmployersDashboard from './Administrador/components/pages/EmployersDashboard.jsx';
 import CreateSurveyPage from './EmpleadoDepartamental/components/pages/CreateSurveyPage.jsx';
 import EncuestList from './EmpleadoDepartamental/components/pages/EncuestList.jsx';
-
-
+import PrivateRoute from './Shared/services/PrivateRoute.jsx';
 
 function App() {
   return (
     <Routes>
-      {/* admin routes */}
-      <Route path="/" element={<DepartamentosDashboard />} />
-      <Route path="/encuestas" element={<EncuestDashboards />} />
-      <Route path="/empleados" element={<EmployersDashboard />} />
-      
-      {/* alumnos routes */}
-      <Route path="dashboardAlumnos" element={<SurveyAlumn />} />
-      <Route path="formulariosAlumnos" element={<QuestionnairePage />} />
+      {/* ================== AdminGeneral ================== */}
+      <Route
+        path="/"
+        element={
+          <PrivateRoute roles={["AdminGeneral"]}>
+            <DepartamentosDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/encuestas"
+        element={
+          <PrivateRoute roles={["AdminGeneral"]}>
+            <EncuestDashboards />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/empleados"
+        element={
+          <PrivateRoute roles={["AdminGeneral"]}>
+            <EmployersDashboard />
+          </PrivateRoute>
+        }
+      />
 
-      {/* EmpleadoDepartamental routes */}
-      <Route path="crearEncuestas" element={<CreateSurveyPage />} />
-      <Route path="encuestasLista" element={<EncuestList />} />
+      {/* ================== Alumno ================== */}
+      <Route
+        path="dashboardAlumnos"
+        element={
+            <FormsAlumn />
+        }
+      />
+      <Route
+        path="formulariosAlumnos"
+        element={
+            <QuestionnairePage />
+        }
+      />
 
+      {/* ================== Empleado Departamental ================== */}
+      <Route
+        path="crearEncuestas"
+        element={
+          <PrivateRoute roles={["Empleado"]}>
+            <CreateSurveyPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="encuestasLista"
+        element={
+          <PrivateRoute roles={["Empleado"]}>
+            <EncuestList />
+          </PrivateRoute>
+        }
+      />
 
+      {/* ================== Público ================== */}
       <Route path="login" element={<Login />} />
       <Route path="/*" element={<PageNotFound />} />
-
     </Routes>
   );
 }
 
 export default App;
-//manu estuvo aki
