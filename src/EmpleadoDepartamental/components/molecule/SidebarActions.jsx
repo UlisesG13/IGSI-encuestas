@@ -44,13 +44,6 @@ const SidebarActions = ({ selectedSurvey, tab, surveys, onSoftDelete, onRestaura
       color: "green",
       disabled: !hasSelection,
       onClick: () => hasSelection && navigate(`/editarEncuesta/${surveys[selectedSurvey].idEncuesta}`)
-    },
-    {
-      icon: FileText,
-      title: "Generar reporte",
-      color: "orange",
-      disabled: !hasSelection,
-      onClick: () => hasSelection && console.log("Generar reporte", surveys[selectedSurvey].idEncuesta)
     }
   ];
 
