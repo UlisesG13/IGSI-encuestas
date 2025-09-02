@@ -12,28 +12,63 @@ import QuestionCreator from "../molecule/QuestionCreator";
 import QuestionList from "../molecule/QuestionList";
 import PageShell from "../organism/PageShell";
 import Navbar from "../molecule/Navbar.jsx";
+import { getUsuarioByCorreo } from "../../../Shared/services/authService.jsx";
+import { getDepartamentoById } from "../../../Administrador/services/departamentosService.jsx";
 import WelcomeMessage from "../molecule/WelcomeMessage.jsx";
+import { getToken} from "../../../Shared/services/authService.jsx"; // asumiendo que tienes helpers para esto
+import { parseJwt } from "../../../Shared/services/jwtUtils";
 
-const estados = ["cerrada", "habilitada", "deshabilitada"];
+
+const estados = ["habilitada", "deshabilitada"];
 const CreateSurveyPage = () => {
   const navigate = useNavigate();
+  const [departamentoNombre, setDepartamentoNombre] = useState("");
+
+  useEffect(() => {
+    const fetchDepartamentoUsuario = async () => {
+      try {
+        const token = getToken();
+        const payload = parseJwt(token);
+  
+        if (payload && payload.sub) {
+          const usuario = await getUsuarioByCorreo(payload.sub);
+  
+          if (usuario.idDepartamento) {
+            setInfo((prev) => ({
+              ...prev,
+              idDepartamento: usuario.idDepartamento, // fijar ID en el estado
+            }));
+  
+            // Traer nombre del departamento
+            const deptoObj = await getDepartamentoById(usuario.idDepartamento);
+            if (deptoObj && deptoObj.nombre) {
+              setDepartamentoNombre(deptoObj.nombre);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error obteniendo departamento del usuario:", error);
+        setDepartamentoNombre("");
+      }
+    };
+  
+    fetchDepartamentoUsuario();
+  }, []);
+
   useEffect(() => {
     async function checkDepartamental() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          window.showAlert("No tienes sesión activa", "error");
+           alert("No tienes sesión activa", "error");
           navigate("/login");
           return;
         }
         // Decodificar el token para obtener el rol
         const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.rol !== "AdminDepartamental") {
-          window.showAlert("Acceso restringido solo para administradores departamentales", "error");
-          navigate("/pageNotFound");
-        }
+        
       } catch (e) {
-        window.showAlert("Error de autenticación", "error");
+        alert("Error de autenticación", "error");
         navigate("/login");
       }
     }
@@ -124,7 +159,7 @@ const CreateSurveyPage = () => {
       const nuevaEncuesta = await createEncuesta(encuestaPayload);
       setEncuestaCreada(true);
       setIdEncuesta(nuevaEncuesta.idEncuesta || nuevaEncuesta.id || nuevaEncuesta.id_encuesta);
-      window.showAlert("Encuesta creada exitosamente", "success");
+      alert("Encuesta creada exitosamente", "success");
     } catch (error) {
       window.showAlert("Error al crear la encuesta", "error");
     }
@@ -224,7 +259,7 @@ const CreateSurveyPage = () => {
   // Finalizar encuesta
   const handleFinalizarEncuesta = () => {
     setFinalizado(true);
-    window.showAlert("Encuesta finalizada y guardada", "success");
+    alert("Encuesta finalizada y guardada", "success");
     // Aquí podrías redirigir o limpiar el estado si lo deseas
   };
 
@@ -269,26 +304,14 @@ const CreateSurveyPage = () => {
               rows={2}
             />
             <label className="text-sm font-semibold text-gray-700">Departamento</label>
-            {loadingDeptos ? (
-              <div className="text-gray-500">Cargando departamentos...</div>
-            ) : errorDeptos ? (
-              <div className="text-red-500">{errorDeptos}</div>
-            ) : (
-              <select
-                name="idDepartamento"
-                value={info.idDepartamento}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg px-3 py-2"
-                required
-              >
-                <option value="">Selecciona departamento</option>
-                {departamentos.map((d) => (
-                  <option key={d.idDepartamento} value={d.idDepartamento}>
-                    {d.nombre}
-                  </option>
-                ))}
-              </select>
-            )}
+            <input
+              
+            type="text"
+            value={departamentoNombre}
+            disabled
+            className="border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
+            />
+
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="text-sm font-semibold text-gray-700">Fecha inicio</label>

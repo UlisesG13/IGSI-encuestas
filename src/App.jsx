@@ -57,7 +57,7 @@ function App() {
       <Route
         path="crearEncuestas"
         element={
-          <PrivateRoute roles={["Empleado"]}>
+          <PrivateRoute roles={["Empleado", "AdminGeneral"]}>
             <CreateSurveyPage />
           </PrivateRoute>
         }
@@ -65,7 +65,7 @@ function App() {
       <Route
         path="encuestasLista"
         element={
-          <PrivateRoute roles={["Empleado"]}>
+          <PrivateRoute roles={["Empleado", "AdminGeneral"]}>
             <EncuestList />
           </PrivateRoute>
         }
