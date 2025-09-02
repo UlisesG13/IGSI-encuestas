@@ -15,6 +15,7 @@ export default function FormsAlumn() {
     (async () => {
       try {
         const data = await getEncuestas();
+        console.log(data)
         if (isMounted) setSurveys(data.filter(e => !e.deleted));
       } catch (err) {
         if (isMounted) {

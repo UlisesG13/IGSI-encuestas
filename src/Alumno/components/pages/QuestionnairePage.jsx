@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { QuestionnaireTemplate } from '../template/QuestionnaireTemplate';
 import AlertContainer from '../molecule/AlertContainer.jsx';
 import Header from '../organism/Header.jsx';
 import { QuestionForm } from '../organism/QuestionForm.jsx';
 import { encuestasService } from '../../services/encuestasService.jsx';
 import { getAuthToken } from '../../../Shared/services/alumnosService.jsx';
+import { createRespuesta } from '../../../Shared/services/respuestasService.jsx';
 
 export const QuestionnairePage = ({ initialData = {}, onComplete, className = '' }) => {
-
-  let token = getAuthToken()
-
+  const token = getAuthToken();
   const payload = JSON.parse(atob(token.split('.')[1]));
+  const alumnoId = payload.id; 
   const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [encuestaData, setEncuestaData] = useState(null);
@@ -22,7 +22,7 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
     role: initialData.role || 'Estudiante'
   });
 
-  // Cargar encuesta completa
+  // Cargar encuesta
   useEffect(() => {
     const cargarEncuestaCompleta = async () => {
       try {
@@ -32,23 +32,25 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
         const encuestaCompleta = await encuestasService.getEncuestaCompleta(idEncuesta);
         setEncuestaData(encuestaCompleta);
 
+        // Procesar preguntas
         const preguntasProcesadas = {};
         encuestaCompleta.secciones.forEach(sec => {
-          preguntasProcesadas[sec.idSeccion] = sec.preguntas.map(p => ({
-            id: p.idPregunta,
-            text: p.textoPregunta,
-            type: mapQuestionType(p.idTipoPregunta),
-            answer: getDefaultAnswer(p.idTipoPregunta),
-            answered: false,
-            requerida: true,
-            ayuda: p.ayuda,
-            options: p.respuestas ? p.respuestas.map(r => r.textoRespuesta) : [],
-            labels: p.respuestas ? p.respuestas.map(r => r.textoRespuesta) : []
-          }));
+          preguntasProcesadas[sec.idSeccion] = sec.preguntas.map(p => {
+            const processed = {
+              id: p.idPregunta,
+              text: p.textoPregunta,
+              type: mapQuestionType(p.idTipoPregunta),
+              answer: getDefaultAnswer(p.idTipoPregunta, p.respuestas),
+              answered: false,
+              ayuda: p.ayuda,
+              options: p.respuestas ? p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta })) : [],
+              labels: p.respuestas ? p.respuestas.map(r => r.textoRespuesta) : []
+            };
+            console.log('Pregunta procesada:', processed); // 🔹 log
+            return processed;
+          });
         });
-
         setQuestionsData(preguntasProcesadas);
-
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -58,58 +60,84 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
     cargarEncuestaCompleta();
   }, []);
 
-  // Funciones auxiliares
+  // Mapear tipos
   const mapQuestionType = (id) => {
     switch (parseInt(id)) {
-      case 1: return 'radio';
-      case 2: return 'checklist';
-      case 3: return 'likert';
-      case 4: return 'text';
-      case 5: return 'textarea';
-      case 6: return 'number';
-      case 7: return 'date';
-      case 8: return 'email';
-      case 9: return 'tel';
+      case 1: return 'text';       // abierta
+      case 2: return 'radio';      // opción múltiple (radio)
+      case 3: return 'radio';      // selección única
+      case 4: return 'likert';     // escala likert
+      case 5: return 'radio';      // sí/no
+      case 6: return 'checklist';  // check box
       default: return 'text';
     }
   };
 
-  const getDefaultAnswer = (id) => {
-    switch (parseInt(id)) {
-      case 2: return [];
-      case 1:
-      case 3:
-        return '';
-      default:
-        return '';
+  // Respuesta por defecto
+  const getDefaultAnswer = (idTipo, respuestas) => {
+    switch (parseInt(idTipo)) {
+      case 6: return []; // checklist
+      case 2: // radio múltiple
+      case 3: // radio único
+      case 5:
+        return respuestas && respuestas.length ? respuestas[0].idRespuestaPosible : null;
+      default: return '';
     }
   };
 
+  // Cambiar respuesta
   const handleAnswerChange = (sectionId, questionIndex, value) => {
     setQuestionsData(prev => ({
       ...prev,
       [sectionId]: prev[sectionId].map((q, i) =>
-        i === questionIndex ? { ...q, answer: value, answered: !!value } : q
+        i === questionIndex
+          ? { ...q, answer: value, answered: Array.isArray(value) ? value.length > 0 : !!value }
+          : q
       )
     }));
   };
 
-  const handleComplete = () => {
-    const allAnswers = Object.values(questionsData).flat();
-    const completedAnswers = allAnswers.filter(q => q.answered);
+  // Calcular progreso
+  const totalQuestions = Object.values(questionsData).flat().length;
+  const answeredQuestions = Object.values(questionsData)
+    .flat()
+    .filter(q => q.answered).length;
+  const progress = totalQuestions ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
 
-    const completionData = {
-      idEncuesta: encuestaData?.idEncuesta,
-      tituloEncuesta: encuestaData?.titulo,
-      totalQuestions: allAnswers.length,
-      completedQuestions: completedAnswers.length,
-      completionRate: (completedAnswers.length / allAnswers.length) * 100,
-      answers: questionsData,
-      completedAt: new Date().toISOString()
-    };
+  // Enviar respuestas
+  const handleComplete = async () => {
+    try {
+      setIsLoading(true);
+      const allAnswers = Object.values(questionsData).flat();
 
-    if (onComplete) onComplete(completionData);
-    console.log('Cuestionario completado:', completionData);
+      for (const q of allAnswers) {
+        const basePayload = {
+          id_alumno: alumnoId,
+          id_pregunta: q.id,
+          id_respuesta_posible: null,
+          respuesta_abierta: null,
+          fecha_respuesta: new Date().toISOString().split("T")[0]
+        };
+
+        if (q.type === 'text') {
+          await createRespuesta(q.id, { ...basePayload, respuesta_abierta: q.answer });
+        } else if (q.type === 'radio' || q.type === 'likert') {
+          await createRespuesta(q.id, { ...basePayload, id_respuesta_posible: q.answer });
+        } else if (q.type === 'checklist') {
+          for (const ansId of q.answer) {
+            await createRespuesta(q.id, { ...basePayload, id_respuesta_posible: ansId });
+          }
+        }
+      }
+
+      if (onComplete) onComplete();
+      navigate("/dashboardAlumnos");
+    } catch (err) {
+      console.error("Error guardando respuestas:", err);
+      setError("No se pudieron guardar las respuestas");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!encuestaData && !error) {
@@ -138,29 +166,42 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
     <div className={`questionnaire-page ${className}`}>
       <AlertContainer />
       <Header />
+
+      <div className="w-full bg-gray-200 h-3 rounded-full mb-2">
+        <div
+          className="bg-blue-600 h-3 rounded-full transition-all"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+      <p className="mb-4 text-sm text-gray-600">{progress}% completado</p>
+
       {encuestaData.secciones.map(sec => (
         <div key={sec.idSeccion} className="mb-6">
           <h2 className="text-xl font-bold mb-2">{sec.titulo}</h2>
           <p className="mb-4 text-gray-600">{sec.descripcion}</p>
+
           {questionsData[sec.idSeccion]?.map((q, index) => (
             <QuestionForm
               key={q.id}
-              question={q.ayuda ? `${q.text}\n💡 ${q.ayuda}` : q.text}
+              question={q.text}
+              ayuda={q.ayuda}
               answer={q.answer}
               onAnswerChange={(value) => handleAnswerChange(sec.idSeccion, index, value)}
               type={q.type}
-              options={q.options}
+              options={q.options} // array completo [{id, text}]
               labels={q.labels}
             />
           ))}
         </div>
       ))}
+
       <div className="flex justify-end mt-4">
         <button
           onClick={handleComplete}
+          disabled={isLoading}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          Completar Encuesta
+          {isLoading ? "Guardando..." : "Completar Encuesta"}
         </button>
       </div>
     </div>

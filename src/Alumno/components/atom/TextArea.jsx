@@ -16,7 +16,7 @@ export const TextArea = ({
   return (
     <textarea
       placeholder={placeholder}
-      value={value}
+      value={value ?? ""}
       onChange={onChange}
       disabled={disabled}
       rows={rows}
