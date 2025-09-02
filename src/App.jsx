@@ -47,7 +47,7 @@ function App() {
         }
       />
       <Route
-        path="formulariosAlumnos:/id"
+        path="formulariosAlumnos/:id"
         element={
             <QuestionnairePage />
         }

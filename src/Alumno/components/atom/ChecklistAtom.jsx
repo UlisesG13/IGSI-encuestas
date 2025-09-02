@@ -34,7 +34,7 @@ export default function ChecklistAtom({ options = [], selected = [], onChange, s
             onChange={() => handleToggle(option)}
             className={`${singleSelect ? 'text-orange-500' : 'accent-orange-500'} w-4 h-4 rounded`}
           />
-          <span className="text-gray-700">{option}</span>
+          <span className="text-gray-700">{option.text || 'Sin texto'}</span>
         </label>
       ))}
     </div>
