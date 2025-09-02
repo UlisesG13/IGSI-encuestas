@@ -1,6 +1,6 @@
 const Subheading= ({ children }) => {
   return (
-    <p className="text-lg text-gray-600 text-center mt-2">
+    <p className="text-lg text-white text-center mt-2">
       {children}
     </p>
   );
