@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import AlertContainer from '../molecule/AlertContainer.jsx';
 import { useNavigate } from "react-router-dom";
-import { getEncuestas } from "../../../Shared/services/encuestasService.jsx";
+import { getAuthToken } from "../../../Shared/services/alumnosService.jsx";
+import { getEncuestasHabilitadas } from "../../../Shared/services/encuestasService.jsx";
 
 export default function FormsAlumn() {
   const navigate = useNavigate();
@@ -13,7 +15,9 @@ export default function FormsAlumn() {
     let isMounted = true;
     (async () => {
       try {
-        const data = await getEncuestas();
+        const token = getAuthToken();
+        const idAlumno = token ? JSON.parse(atob(token.split('.')[1])).id : null;
+        const data = await getEncuestasHabilitadas(idAlumno);
         console.log(data)
         if (isMounted) setSurveys(data.filter(e => !e.deleted));
       } catch (err) {
@@ -42,21 +46,24 @@ export default function FormsAlumn() {
         {!loading && !error && (
           <div className="w-full flex flex-col gap-4">
             {surveys.map((survey) => (
-  <div
-    key={survey.idEncuesta}
-    className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100 cursor-pointer hover:bg-orange-50"
-    onClick={() => handleSurveyClick(survey.idEncuesta)}
-  >
-    <div className="flex flex-col">
-      <span className="font-semibold text-gray-800 text-lg">{survey.titulo}</span>
-      <span className="text-gray-500 text-base mt-1">{survey.descripcion}</span>
-    </div>
-  </div> // ← este cierre faltaba
-))}
-
-            </div>
-          )}
-        </div>
+              <div
+                key={survey.idEncuesta}
+                className="flex flex-row items-center justify-between bg-gray-50 rounded-lg px-8 py-6 shadow-sm border border-gray-100 cursor-pointer hover:bg-orange-50"
+                onClick={() => handleSurveyClick(survey.idEncuesta)}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800 text-lg">{survey.titulo}</span>
+                  <span className="text-gray-500 text-base mt-1">{survey.descripcion}</span>
+                </div>
+                <div className="flex flex-col text-right">
+                  <span className="font-semibold text-gray-800 text-base">Vigencia</span>
+                  <span className="text-gray-500 text-base mt-1">{survey.fechaInicio} - {survey.fechaFin}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+    </div>
   );
 }

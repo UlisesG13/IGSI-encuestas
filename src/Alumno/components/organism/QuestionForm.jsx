@@ -53,32 +53,46 @@ export const QuestionForm = ({
     }
 
     // Likert
-    if (type === "likert" && labels.length > 0) {
+    if (type === "likert" && options.length > 0) {
+      // Si options tiene datos, usar options como escala
       return (
-        <LikertQuestion
-          question={question}
-          labels={labels}
-          value={answer}
-          onChange={onAnswerChange}
-        />
+        <div className="flex flex-row gap-3 mt-4 justify-center">
+          {options.map((opt, idx) => (
+            <label key={opt.id || idx} className="flex flex-col items-center cursor-pointer">
+              <input
+                type="radio"
+                name={`likert-${questionNumber}`}
+                value={opt.id}
+                checked={answer === opt.id}
+                onChange={() => onAnswerChange(opt.id)}
+                className="accent-orange-500 w-6 h-6 mb-1"
+              />
+              <span className="text-gray-700 text-base">{opt.text}</span>
+            </label>
+          ))}
+        </div>
       );
     }
 
-    // Radio
+    // Radio (opción múltiple, selección única, sí/no)
     if (type === "radio" && options.length > 0) {
-      return options.map((opt) => (
-        <label key={opt.id} className="block mb-2">
-          <input
-            type="radio"
-            name={`q-${questionNumber}`}
-            value={opt.id}
-            checked={answer === opt.id}
-            onChange={() => onAnswerChange(opt.id)}
-            className="mr-2"
-          />
-          {opt.text}
-        </label>
-      ));
+      return (
+        <div className="flex flex-col gap-4 mt-4">
+          {options.map((opt, idx) => (
+            <label key={opt.id || idx} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name={`radio-${questionNumber}`}
+                value={opt.id}
+                checked={answer === opt.id}
+                onChange={() => onAnswerChange(opt.id)}
+                className="accent-orange-500 w-6 h-6"
+              />
+              <span className="text-gray-700 text-lg">{opt.text}</span>
+            </label>
+          ))}
+        </div>
+      );
     }
 
     // Text (abierta)

@@ -17,10 +17,16 @@ export async function getEncuestasDeleted() {
   return res.json();
 }
 
-export async function getEncuestasHabilitadas() {
-  const res = await fetch(`${API_BASE}/encuestas/alumnos`, { headers: authHeaders() });
+export async function getEncuestasHabilitadas(idAlumno) {
+  const res = await fetch(`${API_BASE}/encuestas/alumno/${idAlumno}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error al obtener encuestas habilitadas");
   return res.json();
+}
+
+export async function completeEncuesta(idEncuesta, idAlumno) {
+  const res = await fetch(`${API_BASE}/encuestas/${idEncuesta}/alumno/${idAlumno}`, { method: "POST", headers: authHeaders() });
+  if (!res.ok) throw new Error("Error al completar encuesta");
+  return {};
 }
 
 export async function getEncuestaById(id) {
