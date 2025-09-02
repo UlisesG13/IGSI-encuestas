@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertContainer from '../molecule/AlertContainer.jsx';
@@ -8,19 +9,38 @@ import { getAuthToken } from '../../../Shared/services/alumnosService.jsx';
 import { createRespuesta } from '../../../Shared/services/respuestasService.jsx';
 
 export const QuestionnairePage = ({ initialData = {}, onComplete, className = '' }) => {
-  const token = getAuthToken();
-  const payload = JSON.parse(atob(token.split('.')[1]));
-  const alumnoId = payload.id; 
-  const navigate = useNavigate();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Estados principales primero
   const [encuestaData, setEncuestaData] = useState(null);
   const [questionsData, setQuestionsData] = useState({});
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [userInfo] = useState({
     name: initialData.name || 'Usuario',
     role: initialData.role || 'Estudiante'
   });
+  // Derivar secciones y preguntas solo cuando encuestaData y questionsData están listos
+  const secciones = encuestaData?.secciones || [];
+  const totalQuestions = secciones.length > 0 ? secciones.reduce((acc, sec) => acc + (questionsData[sec.idSeccion]?.length || 0), 0) : 0;
+  const currentSection = secciones.length > 0 ? secciones[currentSectionIndex] || {} : {};
+  const currentQuestions = currentSection.idSeccion ? (questionsData[currentSection.idSeccion] || []) : [];
+  const currentQuestion = currentQuestions.length > 0 ? currentQuestions[currentQuestionIndex] || null : null;
+  const currentQuestionNumber = secciones.length > 0 ? secciones.slice(0, currentSectionIndex).reduce((acc, sec) => acc + (questionsData[sec.idSeccion]?.length || 0), 0) + currentQuestionIndex + 1 : 0;
+  // Calcular progreso solo una vez
+  const answeredQuestions = Object.values(questionsData).flat().filter(q => q.answered).length;
+  const progress = totalQuestions ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+  const token = getAuthToken();
+  let alumnoId = null;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      alumnoId = payload.id;
+    } catch (e) {
+      console.error('Error decodificando token:', e);
+    }
+  }
+  const navigate = useNavigate();
 
   // Cargar encuesta
   useEffect(() => {
@@ -98,11 +118,6 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
   };
 
   // Calcular progreso
-  const totalQuestions = Object.values(questionsData).flat().length;
-  const answeredQuestions = Object.values(questionsData)
-    .flat()
-    .filter(q => q.answered).length;
-  const progress = totalQuestions ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
 
   // Enviar respuestas
   const handleComplete = async () => {
@@ -179,43 +194,147 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
     <div className={`questionnaire-page ${className} bg-orange-50 min-h-screen w-full`}>
       <AlertContainer />
       <Header />
-
-      <div className="w-full bg-gray-200 h-3 rounded-full mb-2">
-        <div
-          className="bg-blue-600 h-3 rounded-full transition-all"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
-      <p className="mb-4 text-sm text-gray-600">{progress}% completado</p>
-
-      {encuestaData.secciones.map(sec => (
-        <div key={sec.idSeccion} className="mb-6">
-          <h2 className="text-xl font-bold mb-2">{sec.titulo}</h2>
-          <p className="mb-4 text-gray-600">{sec.descripcion}</p>
-
-          {questionsData[sec.idSeccion]?.map((q, index) => (
-            <QuestionForm
-              key={q.id}
-              question={q.text}
-              ayuda={q.ayuda}
-              answer={q.answer}
-              onAnswerChange={(value) => handleAnswerChange(sec.idSeccion, index, value)}
-              type={q.type}
-              options={q.options} // array completo [{id, text}]
-              labels={q.labels}
-            />
-          ))}
+      <div className="w-full max-w-3xl mx-auto mt-10 bg-white rounded-2xl shadow-lg p-12 flex flex-col items-center">
+        {/* Progreso y sección actual */}
+        <div className="w-full mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-2xl font-bold text-orange-700">{currentSection.titulo}</h2>
+            <span className="text-base text-gray-500">{currentSection.descripcion}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-base text-gray-600">Pregunta {currentQuestionNumber} de {totalQuestions}</span>
+            <span className="text-base font-medium text-orange-600">{Math.round((currentQuestionNumber / totalQuestions) * 100)}% contestado</span>
+          </div>
+          <div className="w-full bg-orange-100 rounded-full h-3 mt-2">
+            <div className="bg-orange-500 h-3 rounded-full transition-all duration-300 ease-out" style={{ width: `${(currentQuestionNumber / totalQuestions) * 100}%` }}></div>
+          </div>
         </div>
-      ))}
-
-      <div className="flex justify-end mt-4">
-        <button
-          onClick={handleComplete}
-          disabled={isLoading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          {isLoading ? "Guardando..." : "Completar Encuesta"}
-        </button>
+        {/* Pregunta actual */}
+        {currentQuestion && (
+          <div className="w-full flex flex-col items-center">
+            <div className="w-full mb-6">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 shadow-sm">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">{currentQuestion.ayuda ? `${currentQuestion.text}\n💡 ${currentQuestion.ayuda}` : currentQuestion.text}</h3>
+                {/* Renderizar opciones según tipo */}
+                {currentQuestion.type === 'radio' && (
+                  <div className="flex flex-col gap-4 mt-4">
+                    {currentQuestion.options.map((opt, idx) => (
+                      <label key={idx} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`radio-${currentQuestion.id}`}
+                          value={opt.id}
+                          checked={currentQuestion.answer === opt.id}
+                          onChange={() => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, opt.id)}
+                          className="accent-orange-500 w-6 h-6"
+                        />
+                        <span className="text-gray-700 text-lg">{opt.text}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {currentQuestion.type === 'checklist' && (
+                  <div className="flex flex-col gap-4 mt-4">
+                    {currentQuestion.options.map((opt, idx) => (
+                      <label key={idx} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          value={opt.id}
+                          checked={Array.isArray(currentQuestion.answer) && currentQuestion.answer.includes(opt.id)}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            let newAnswer = Array.isArray(currentQuestion.answer) ? [...currentQuestion.answer] : [];
+                            if (checked) newAnswer.push(opt.id);
+                            else newAnswer = newAnswer.filter(a => a !== opt.id);
+                            handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, newAnswer);
+                          }}
+                          className="accent-orange-500 w-6 h-6"
+                        />
+                        <span className="text-gray-700 text-lg">{opt.text}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {currentQuestion.type === 'likert' && (
+                  <div className="flex flex-row gap-3 mt-4 justify-center">
+                    {currentQuestion.labels.map((label, idx) => (
+                      <label key={idx} className="flex flex-col items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`likert-${currentQuestion.id}`}
+                          value={label}
+                          checked={currentQuestion.answer === label}
+                          onChange={() => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, label)}
+                          className="accent-orange-500 w-6 h-6 mb-1"
+                        />
+                        <span className="text-gray-700 text-base">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {['text', 'email', 'number', 'date', 'tel'].includes(currentQuestion.type) && (
+                  <div className="mt-4">
+                    <input
+                      type={currentQuestion.type}
+                      value={currentQuestion.answer}
+                      onChange={e => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, e.target.value)}
+                      className="w-full border border-orange-300 rounded-xl px-6 py-3 text-gray-700 text-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                      placeholder="Escribe tu respuesta..."
+                    />
+                  </div>
+                )}
+                {currentQuestion.type === 'textarea' && (
+                  <div className="mt-4">
+                    <textarea
+                      value={currentQuestion.answer}
+                      onChange={e => handleAnswerChange(currentSection.idSeccion, currentQuestionIndex, e.target.value)}
+                      className="w-full border border-orange-300 rounded-xl px-6 py-3 text-gray-700 text-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                      rows={5}
+                      placeholder="Escribe tu respuesta..."
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Botones de navegación */}
+            <div className="flex justify-between w-full mt-8">
+              <button
+                onClick={() => {
+                  if (currentQuestionIndex > 0) setCurrentQuestionIndex(currentQuestionIndex - 1);
+                  else if (currentSectionIndex > 0) {
+                    setCurrentSectionIndex(currentSectionIndex - 1);
+                    setCurrentQuestionIndex(questionsData[secciones[currentSectionIndex - 1].idSeccion].length - 1);
+                  }
+                }}
+                disabled={currentQuestionNumber === 1}
+                className={`px-8 py-3 rounded-xl font-semibold text-white bg-orange-400 hover:bg-orange-500 transition-colors text-lg ${currentQuestionNumber === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                ← Anterior
+              </button>
+              {currentQuestionNumber < totalQuestions ? (
+                <button
+                  onClick={() => {
+                    if (currentQuestionIndex < currentQuestions.length - 1) setCurrentQuestionIndex(currentQuestionIndex + 1);
+                    else if (currentSectionIndex < secciones.length - 1) {
+                      setCurrentSectionIndex(currentSectionIndex + 1);
+                      setCurrentQuestionIndex(0);
+                    }
+                  }}
+                  className="px-8 py-3 rounded-xl font-semibold text-white bg-orange-600 hover:bg-orange-700 transition-colors text-lg"
+                >
+                  Siguiente →
+                </button>
+              ) : (
+                <button
+                  onClick={handleComplete}
+                  className="px-8 py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors text-lg"
+                >
+                  Finalizar encuesta
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
