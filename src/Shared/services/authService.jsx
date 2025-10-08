@@ -109,9 +109,9 @@ export async function crearUsuario(usuario) {
     body: JSON.stringify({
       nombre: usuario.nombre,
       correo: usuario.correo,
-      password: usuario.contraseña,
+      password: usuario.password,
       rol: usuario.rol,
-      idDepartamento: Number(usuario.departamento) || null,
+      idDepartamento: Number(usuario.idDepartamento) || null,
     }),
   });
   if (!response.ok) {
