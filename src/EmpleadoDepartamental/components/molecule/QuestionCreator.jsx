@@ -56,14 +56,37 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId, t
     if (!textoPregunta.trim() || !idTipoPregunta || !idSeccion) return;
     if (requiereOpciones && opcionesValidas.length < 2) return;
 
+    // Generar respuestas predefinidas para tipo likert y si_no
+    let respuestasFinales = requiereOpciones
+      ? opcionesValidas.map(texto => ({ textoRespuesta: texto }))
+      : [];
+
+    const tipoNombre = tipoActual?.nombre;
+    if (tipoNombre === "likert") {
+      // Escala Likert básica 1 a 5
+      respuestasFinales = [
+        { textoRespuesta: "1" },
+        { textoRespuesta: "2" },
+        { textoRespuesta: "3" },
+        { textoRespuesta: "4" },
+        { textoRespuesta: "5" }
+      ];
+    } else if (tipoNombre === "si_no") {
+      respuestasFinales = [
+        { textoRespuesta: "Sí" },
+        { textoRespuesta: "No" }
+      ];
+    }
+
     onAdd({
       textoPregunta,
       idTipoPregunta: Number(idTipoPregunta),
       ayuda,
       idSeccion,
-      respuestasPosibles: requiereOpciones ? opcionesValidas.map(texto => ({ textoRespuesta: texto })) : []
+      respuestasPosibles: respuestasFinales
     });
 
+    // Limpiar formulario
     setTextoPregunta("");
     setIdTipoPregunta("");
     setAyuda("");
@@ -82,6 +105,7 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId, t
           <option key={sec.id} value={sec.id}>{sec.titulo || sec.label}</option>
         ))}
       </select>
+
       <input
         type="text"
         value={textoPregunta}
@@ -90,6 +114,7 @@ export default function QuestionCreator({ onAdd, secciones, selectedSectionId, t
         className="border rounded px-3 py-2"
         required
       />
+
       <select
         value={idTipoPregunta}
         onChange={e => setIdTipoPregunta(Number(e.target.value))}

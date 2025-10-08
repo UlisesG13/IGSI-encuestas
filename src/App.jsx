@@ -43,13 +43,13 @@ function App() {
       <Route
         path="dashboardAlumnos"
         element={
-            <SurveyAlumn/>
+          <SurveyAlumn />
         }
       />
       <Route
         path="formulariosAlumnos/:id"
         element={
-            <QuestionnairePage />
+          <QuestionnairePage />
         }
       />
 

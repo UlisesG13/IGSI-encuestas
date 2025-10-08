@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertContainer from '../molecule/AlertContainer.jsx';
 import Header from '../organism/Header.jsx';
-import { QuestionForm } from '../organism/QuestionForm.jsx';
 import { encuestasService } from '../../services/encuestasService.jsx';
 import { getAuthToken } from '../../../Shared/services/alumnosService.jsx';
 import { createRespuesta } from '../../../Shared/services/respuestasService.jsx';
+import { completeEncuesta } from '../../../Shared/services/encuestasService.jsx';
 
 export const QuestionnairePage = ({ initialData = {}, onComplete, className = '' }) => {
   // Estados principales primero
@@ -59,30 +59,9 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
             let labels = [];
             const tipo = parseInt(p.idTipoPregunta);
             // Si no hay respuestas pero es sí/no, crear opciones manualmente
-            if ((tipo === 5 || (tipo === 2 && (!p.respuestas || p.respuestas.length === 0))) && options.length === 0) {
-              options = [
-                { id: 1, text: 'Sí' },
-                { id: 0, text: 'No' }
-              ];
-            }
-            // Para tipo Likert, si las respuestas tienen texto tipo escala, usar como opciones
-            if (tipo === 4 && p.respuestas && p.respuestas.length > 0) {
-              options = p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta }));
-              labels = p.respuestas.map(r => r.textoRespuesta);
-            } else if (p.respuestas && p.respuestas.length > 0) {
-              options = p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta }));
-            }
-            // Si es tipo Likert y no hay opciones, usar escala estándar
-            if (tipo === 4 && options.length === 0) {
-              options = [
-                { id: 1, text: 'Muy en desacuerdo' },
-                { id: 2, text: 'En desacuerdo' },
-                { id: 3, text: 'Neutral' },
-                { id: 4, text: 'De acuerdo' },
-                { id: 5, text: 'Muy de acuerdo' }
-              ];
-              labels = options.map(o => o.text);
-            }
+            options = p.respuestas ? p.respuestas.map(r => ({ id: r.idRespuestaPosible, text: r.textoRespuesta })) : [];
+            labels = p.respuestas ? p.respuestas.map(r => r.textoRespuesta) : [];
+
             const processed = {
               id: p.idPregunta,
               text: p.textoPregunta,
@@ -161,20 +140,43 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
           fecha_respuesta: new Date().toISOString().split("T")[0]
         };
 
-        if (q.type === 'text') {
-          await createRespuesta(q.id, { ...basePayload, respuesta_abierta: q.answer });
-        } else if (q.type === 'radio' || q.type === 'likert') {
-          await createRespuesta(q.id, { ...basePayload, id_respuesta_posible: q.answer });
-        } else if (q.type === 'checklist') {
+        // Payload final a enviar
+        let payloadToSend = { ...basePayload };
+
+        if (q.type === "text") {
+          payloadToSend.respuesta_abierta = q.answer;
+        }
+        else if (q.type === "radio" || q.type === "likert") {
+          // Directamente enviamos el ID del backend
+          payloadToSend.id_respuesta_posible = q.answer;
+        }
+        else if (q.type === "checklist") {
           for (const ansId of q.answer) {
-            await createRespuesta(q.id, { ...basePayload, id_respuesta_posible: ansId });
+            const checklistPayload = { ...basePayload, id_respuesta_posible: ansId };
+            console.log("[CHECKLIST] Enviando payload:", checklistPayload);
+            try {
+              const res = await createRespuesta(q.id, checklistPayload);
+              console.log("[CHECKLIST] Respuesta backend:", res);
+            } catch (err) {
+              console.error("[CHECKLIST] Error backend:", err, "Payload:", checklistPayload);
+            }
           }
+          continue; // Checklist ya fue enviada
+        }
+
+        console.log("[RESPUESTA] Enviando payload:", payloadToSend);
+        try {
+          const res = await createRespuesta(q.id, payloadToSend);
+          console.log("[RESPUESTA] Respuesta backend:", res);
+        } catch (err) {
+          console.error("[RESPUESTA] Error backend:", err, "Payload:", payloadToSend);
         }
       }
 
-      if (onComplete) onComplete();
-
+      // 🔹 Marcar encuesta como completada en el backend
       await completeEncuesta(idEncuesta, alumnoId);
+
+      if (onComplete) onComplete();
       navigate("/dashboardAlumnos");
     } catch (err) {
       console.error("Error guardando respuestas:", err);
@@ -207,8 +209,8 @@ export const QuestionnairePage = ({ initialData = {}, onComplete, className = ''
             <div className="text-red-600 text-6xl mb-4">⚠️</div>
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Error al cargar la encuesta</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
             >
               Intentar de nuevo
